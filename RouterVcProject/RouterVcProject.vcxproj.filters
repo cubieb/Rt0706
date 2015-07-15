@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="头文件\Functions">
+      <UniqueIdentifier>{ffeb4220-3f42-4cf9-81ef-a72c3779acd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Public">
+      <UniqueIdentifier>{eee307fd-09ea-4c64-af20-14a9a29f754e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\UnitTest">
+      <UniqueIdentifier>{9fbfebfe-e342-4a16-9fcd-ecd3faf61a4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Functions">
+      <UniqueIdentifier>{1ceb3509-53c4-4560-b8c1-fc10de974708}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Public">
+      <UniqueIdentifier>{30a605e9-3086-4f6e-a4f2-74914c24bfd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\UnitTest">
+      <UniqueIdentifier>{81d5bff6-655f-4e0d-9e2d-d801e4cbc9e1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Eapol.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Option.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Pcap.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Rc4.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Station.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Public\Common.h">
+      <Filter>头文件\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Public\Debug.h">
+      <Filter>头文件\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Public\RouterError.h">
+      <Filter>头文件\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Public\SystemInclude.h">
+      <Filter>头文件\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\UnitTest\UnitTest.h">
+      <Filter>头文件\UnitTest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Main.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Option.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Station.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\Common.cpp">
+      <Filter>源文件\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\Debug.cpp">
+      <Filter>源文件\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\RouterError.cpp">
+      <Filter>源文件\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\UnitTest\UnitTest.cpp">
+      <Filter>源文件\UnitTest</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\ReadMe.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
