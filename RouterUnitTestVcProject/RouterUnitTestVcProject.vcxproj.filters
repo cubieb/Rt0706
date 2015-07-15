@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="CodesUnderTest">
+      <UniqueIdentifier>{80fdca02-be54-48dd-8ba9-5174dbe91d83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\源文件">
+      <UniqueIdentifier>{db4b0f52-6de4-45fa-9ade-a739d69e4664}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\源文件\Functions">
+      <UniqueIdentifier>{b77d05db-93e5-4183-8684-0c0a5433c492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\源文件\Public">
+      <UniqueIdentifier>{de0cf343-c778-4217-828b-64afe6950ce3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\头文件">
+      <UniqueIdentifier>{7d8e8078-89b2-4733-81a2-7d4e733dd1ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\头文件\Functions">
+      <UniqueIdentifier>{175571fa-8ee2-46ef-bc49-1d40b4d78415}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\头文件\Public">
+      <UniqueIdentifier>{49f70556-c55c-4e72-9b03-618618414b98}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\UnitTestCodes\Main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UnitTestCodes\UnitTest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp">
+      <Filter>CodesUnderTest\源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Option.cpp">
+      <Filter>CodesUnderTest\源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp">
+      <Filter>CodesUnderTest\源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp">
+      <Filter>CodesUnderTest\源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Station.cpp">
+      <Filter>CodesUnderTest\源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\Common.cpp">
+      <Filter>CodesUnderTest\源文件\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\Debug.cpp">
+      <Filter>CodesUnderTest\源文件\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\RouterError.cpp">
+      <Filter>CodesUnderTest\源文件\Public</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\UnitTestCodes\Main.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UnitTestCodes\UnitTest.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h">
+      <Filter>CodesUnderTest\头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Eapol.h">
+      <Filter>CodesUnderTest\头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Option.h">
+      <Filter>CodesUnderTest\头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Pcap.h">
+      <Filter>CodesUnderTest\头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Rc4.h">
+      <Filter>CodesUnderTest\头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Station.h">
+      <Filter>CodesUnderTest\头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Public\Common.h">
+      <Filter>CodesUnderTest\头文件\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Public\Debug.h">
+      <Filter>CodesUnderTest\头文件\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Public\RouterError.h">
+      <Filter>CodesUnderTest\头文件\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Public\SystemInclude.h">
+      <Filter>CodesUnderTest\头文件\Public</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
