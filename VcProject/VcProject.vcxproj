@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BB8F7036-DD1B-4672-AD6E-BF38323E876F}</ProjectGuid>
+    <ProjectGuid>{DC050F04-EAEE-43D6-81EC-DFA9F75D0E57}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>RouterUnitTestVcProject</RootNamespace>
+    <RootNamespace>VcProject</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(IncludePath);$(ProjectDir)\..\Codes\Include;$(ProjectDir)\..\Codes\Include\Functions;$(ProjectDir)\..\Codes\Include\Public</IncludePath>
+    <IncludePath>$(SolutionDir)\Codes\Include\Public;$(SolutionDir)\Codes\Include\Functions;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -77,6 +77,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Codes\Main.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Option.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp" />
@@ -85,8 +86,6 @@
     <ClCompile Include="..\Codes\Src\Public\Common.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Debug.cpp" />
     <ClCompile Include="..\Codes\Src\Public\RouterError.cpp" />
-    <ClCompile Include="..\UnitTestCodes\Main.cpp" />
-    <ClCompile Include="..\UnitTestCodes\UnitTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h" />
@@ -99,8 +98,7 @@
     <ClInclude Include="..\Codes\Include\Public\Debug.h" />
     <ClInclude Include="..\Codes\Include\Public\RouterError.h" />
     <ClInclude Include="..\Codes\Include\Public\SystemInclude.h" />
-    <ClInclude Include="..\UnitTestCodes\Main.h" />
-    <ClInclude Include="..\UnitTestCodes\UnitTest.h" />
+    <ClInclude Include="..\Codes\Main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

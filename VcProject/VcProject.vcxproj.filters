@@ -13,20 +13,55 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{84dc8d82-9574-48b3-b5b0-65f43b67006c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="头文件\Functions">
-      <UniqueIdentifier>{ffeb4220-3f42-4cf9-81ef-a72c3779acd0}</UniqueIdentifier>
+      <UniqueIdentifier>{e59730db-111b-4cc0-8c05-fe93ca5433a5}</UniqueIdentifier>
     </Filter>
     <Filter Include="头文件\Public">
-      <UniqueIdentifier>{eee307fd-09ea-4c64-af20-14a9a29f754e}</UniqueIdentifier>
+      <UniqueIdentifier>{98695b05-dbf5-4ce4-8b25-f4768cdeab89}</UniqueIdentifier>
     </Filter>
     <Filter Include="源文件\Functions">
-      <UniqueIdentifier>{1ceb3509-53c4-4560-b8c1-fc10de974708}</UniqueIdentifier>
+      <UniqueIdentifier>{60385bfd-cfab-41d0-b8a9-85749f2fafcc}</UniqueIdentifier>
     </Filter>
     <Filter Include="源文件\Public">
-      <UniqueIdentifier>{30a605e9-3086-4f6e-a4f2-74914c24bfd4}</UniqueIdentifier>
+      <UniqueIdentifier>{1336dca0-48da-4e78-a49b-9bc37b64da86}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Codes\Main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Option.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\Station.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\Common.cpp">
+      <Filter>源文件\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\Debug.cpp">
+      <Filter>源文件\Public</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Public\RouterError.cpp">
+      <Filter>源文件\Public</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Codes\Main.h">
+      <Filter>Main</Filter>
+    </ClInclude>
     <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h">
       <Filter>头文件\Functions</Filter>
     </ClInclude>
@@ -57,42 +92,5 @@
     <ClInclude Include="..\Codes\Include\Public\SystemInclude.h">
       <Filter>头文件\Public</Filter>
     </ClInclude>
-    <ClInclude Include="..\Codes\Main.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp">
-      <Filter>源文件\Functions</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Codes\Src\Functions\Option.cpp">
-      <Filter>源文件\Functions</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp">
-      <Filter>源文件\Functions</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp">
-      <Filter>源文件\Functions</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Codes\Src\Functions\Station.cpp">
-      <Filter>源文件\Functions</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Codes\Src\Public\Common.cpp">
-      <Filter>源文件\Public</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Codes\Src\Public\Debug.cpp">
-      <Filter>源文件\Public</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Codes\Src\Public\RouterError.cpp">
-      <Filter>源文件\Public</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Codes\Main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\ReadMe.txt">
-      <Filter>资源文件</Filter>
-    </Text>
   </ItemGroup>
 </Project>

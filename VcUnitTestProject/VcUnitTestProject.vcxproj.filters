@@ -10,25 +10,25 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="CodesUnderTest">
-      <UniqueIdentifier>{80fdca02-be54-48dd-8ba9-5174dbe91d83}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CodesUnderTest\源文件">
-      <UniqueIdentifier>{db4b0f52-6de4-45fa-9ade-a739d69e4664}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CodesUnderTest\源文件\Functions">
-      <UniqueIdentifier>{b77d05db-93e5-4183-8684-0c0a5433c492}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CodesUnderTest\源文件\Public">
-      <UniqueIdentifier>{de0cf343-c778-4217-828b-64afe6950ce3}</UniqueIdentifier>
+      <UniqueIdentifier>{f870e95e-4e99-4d46-a748-6191a7113500}</UniqueIdentifier>
     </Filter>
     <Filter Include="CodesUnderTest\头文件">
-      <UniqueIdentifier>{7d8e8078-89b2-4733-81a2-7d4e733dd1ee}</UniqueIdentifier>
+      <UniqueIdentifier>{1e560ec7-5818-4f9b-af31-af4da9890046}</UniqueIdentifier>
     </Filter>
     <Filter Include="CodesUnderTest\头文件\Functions">
-      <UniqueIdentifier>{175571fa-8ee2-46ef-bc49-1d40b4d78415}</UniqueIdentifier>
+      <UniqueIdentifier>{74ae38ae-154a-44bd-b67d-f09146c35e64}</UniqueIdentifier>
     </Filter>
     <Filter Include="CodesUnderTest\头文件\Public">
-      <UniqueIdentifier>{49f70556-c55c-4e72-9b03-618618414b98}</UniqueIdentifier>
+      <UniqueIdentifier>{34a7ca26-1468-43b5-8f3a-6713b5f6bd6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\源文件">
+      <UniqueIdentifier>{a83a4a78-93ed-47c1-b6f6-1a79a99a11b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\源文件\Functions">
+      <UniqueIdentifier>{12033184-448c-4d06-a100-ddcefe08ed42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CodesUnderTest\源文件\Public">
+      <UniqueIdentifier>{7c209ce7-4ff4-425d-83e5-186132abb976}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

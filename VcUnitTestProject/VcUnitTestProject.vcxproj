@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{21F4A47C-BD4F-4824-BC16-E288E0EEDA1E}</ProjectGuid>
+    <ProjectGuid>{53EE1774-D380-4643-9ECC-983B8EFD40DC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>RouterVcProject</RootNamespace>
+    <RootNamespace>VcUnitTestProject</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(IncludePath);$(ProjectDir)\..\Codes\Include;$(ProjectDir)\..\Codes\Include\Functions;$(ProjectDir)\..\Codes\Include\Public;$(ProjectDir)\..\Codes\Include\UnitTest</IncludePath>
+    <IncludePath>$(SolutionDir)\Codes\Include\Public;$(SolutionDir)\Codes\Include\Functions;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -77,6 +77,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp" />
+    <ClCompile Include="..\Codes\Src\Functions\Option.cpp" />
+    <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp" />
+    <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp" />
+    <ClCompile Include="..\Codes\Src\Functions\Station.cpp" />
+    <ClCompile Include="..\Codes\Src\Public\Common.cpp" />
+    <ClCompile Include="..\Codes\Src\Public\Debug.cpp" />
+    <ClCompile Include="..\Codes\Src\Public\RouterError.cpp" />
+    <ClCompile Include="..\UnitTestCodes\Main.cpp" />
+    <ClCompile Include="..\UnitTestCodes\UnitTest.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h" />
     <ClInclude Include="..\Codes\Include\Functions\Eapol.h" />
     <ClInclude Include="..\Codes\Include\Functions\Option.h" />
@@ -87,21 +99,8 @@
     <ClInclude Include="..\Codes\Include\Public\Debug.h" />
     <ClInclude Include="..\Codes\Include\Public\RouterError.h" />
     <ClInclude Include="..\Codes\Include\Public\SystemInclude.h" />
-    <ClInclude Include="..\Codes\Main.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\Codes\Main.cpp" />
-    <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp" />
-    <ClCompile Include="..\Codes\Src\Functions\Option.cpp" />
-    <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp" />
-    <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp" />
-    <ClCompile Include="..\Codes\Src\Functions\Station.cpp" />
-    <ClCompile Include="..\Codes\Src\Public\Common.cpp" />
-    <ClCompile Include="..\Codes\Src\Public\Debug.cpp" />
-    <ClCompile Include="..\Codes\Src\Public\RouterError.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\ReadMe.txt" />
+    <ClInclude Include="..\UnitTestCodes\Main.h" />
+    <ClInclude Include="..\UnitTestCodes\UnitTest.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
