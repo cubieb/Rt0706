@@ -5,7 +5,7 @@
 #include "Debug.h"
 #include "AccessPoint.h"
 #include "Option.h"
-#include "RouterError.h" 
+#include "SystemError.h" 
 
 using namespace std;
 using namespace Router;

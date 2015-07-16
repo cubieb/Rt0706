@@ -1,5 +1,5 @@
 #include "SystemInclude.h"
-#include "RouterError.h"
+#include "SystemError.h"
 #include "Common.h"
 #include "Pcap.h"
 
@@ -12,7 +12,7 @@ PcapFileHeader::PcapFileHeader(const char *fileName)
     
     if (pcapFile == nullptr)
     {
-        throw system_error(router_error_t::file_not_exists);
+        throw system_error(system_error_t::file_not_exists);
     }
     streampos start = pcapFile.tellg();
     pcapFile.read(reinterpret_cast<char *>(&magic), sizeof(magic));
@@ -25,7 +25,7 @@ PcapFileHeader::PcapFileHeader(const char *fileName)
 
     if (magic != TcpDumpMagic)
     {
-        throw system_error(router_error_t::bad_file_type);
+        throw system_error(system_error_t::bad_file_type);
     }
 
     /* calculate file size */
@@ -52,7 +52,7 @@ PcapPacketHeader::PcapPacketHeader(const char *fileName, size_t offset)
     fstream pcapFile(fileName, ios_base::in  | ios::binary);
     if (pcapFile == nullptr)
     {
-        throw system_error(router_error_t::file_not_exists);
+        throw system_error(system_error_t::file_not_exists);
     }
     pcapFile.seekp(offset);
     pcapFile.read(reinterpret_cast<char *>(&ts), sizeof(ts));
@@ -284,7 +284,7 @@ H802dot11::H802dot11(const char *fileName, size_t offset, size_t theFrameSize)
     fstream pcapFile(fileName, ios_base::in | ios::binary);
     if (pcapFile == nullptr)
     {
-        throw system_error(router_error_t::file_not_exists);
+        throw system_error(system_error_t::file_not_exists);
     }
     pcapFile.seekp(offset);
     pcapFile.read(reinterpret_cast<char*>(buf.get()), frameSize);

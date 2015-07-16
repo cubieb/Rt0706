@@ -85,7 +85,7 @@
     <ClCompile Include="..\Codes\Src\Functions\Station.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Common.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Debug.cpp" />
-    <ClCompile Include="..\Codes\Src\Public\RouterError.cpp" />
+    <ClCompile Include="..\Codes\Src\Public\SystemError.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h" />
@@ -96,7 +96,7 @@
     <ClInclude Include="..\Codes\Include\Functions\Station.h" />
     <ClInclude Include="..\Codes\Include\Public\Common.h" />
     <ClInclude Include="..\Codes\Include\Public\Debug.h" />
-    <ClInclude Include="..\Codes\Include\Public\RouterError.h" />
+    <ClInclude Include="..\Codes\Include\Public\SystemError.h" />
     <ClInclude Include="..\Codes\Include\Public\SystemInclude.h" />
     <ClInclude Include="..\Codes\Main.h" />
   </ItemGroup>
