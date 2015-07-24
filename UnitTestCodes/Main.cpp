@@ -14,10 +14,7 @@ using namespace std;
 int main()
 {
     DebugFlag flag;
-    flag.SetState("UnitTest::Crack", true);
-
-    UnitTest::Crack();
-    
+   
     system("Pause");
 	return 0;
 }

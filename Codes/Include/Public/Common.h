@@ -1,6 +1,12 @@
 #ifndef _Common_h_
 #define _Common_h_
 
+/*
+Example:
+    uchar_t* mem;
+    cout << MemStream(mem) << endl;
+*/
+
 template<class T>
 class MemStream
 {

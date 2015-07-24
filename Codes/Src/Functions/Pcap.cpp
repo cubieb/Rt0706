@@ -6,7 +6,7 @@
 CxxBeginNameSpace(Router)
 using namespace std;
 
-PcapFileHeader::PcapFileHeader(const char *fileName)
+PcapFile::PcapFile(const char *fileName)
 {
     fstream pcapFile(fileName, ios_base::in  | ios::binary);
     
@@ -34,7 +34,7 @@ PcapFileHeader::PcapFileHeader(const char *fileName)
     fileSize = static_cast<size_t>(end - start); 
 }
 
-size_t PcapFileHeader::GetHeaderSize()
+size_t PcapFile::GetHeaderSize()
 {
     /* return sizeof(magic) + sizeof(versionMajor) + sizeof(versionMinor) 
                      + sizeof(reserved1)+ sizeof(reserved2) + sizeof(reserved3)
@@ -42,7 +42,7 @@ size_t PcapFileHeader::GetHeaderSize()
     return 24; 
 }
 
-size_t PcapFileHeader::GetFileSize()
+size_t PcapFile::GetFileSize()
 {
     return fileSize; 
 }
@@ -65,221 +65,10 @@ size_t PcapPacketHeader::GetSize()
     return sizeof(struct timeval) + sizeof(uint32_t) + sizeof(uint32_t);
 }
 
-/******************************/
-ManagementFrame::ManagementFrame(shared_ptr<uchar_t> theBuff, size_t theOffset, size_t theFrameSize)
-    : buf(theBuff), offset(theOffset), frameSize(theFrameSize)
-{}
-
-ManagementFrame::ManagementFrame(const ManagementFrame& right)
-    : buf(right.buf), offset(right.offset),frameSize(right.frameSize)
-{}
-
-string ManagementFrame::GetEssid() const
-{
-    uchar_t* ptr;
-    string essid;
-    for (ptr = buf.get() + offset + GetFixFieldSize(); 
-         ptr < buf.get() + offset + GetFixFieldSize() + frameSize; 
-         ptr = ptr + 2 + ptr[1])
-    {
-        if (ptr[0] == 0)
-        {
-            if (ptr[1] > 0 && ptr[2] != '\0')
-            {
-                essid.append(reinterpret_cast<char*>(ptr + 2), ptr[1]);
-            }
-            break;
-        }
-    }
-
-    return essid;
-}
-
-void ManagementFrame::Put(ostream& os) const
-{
-    os << "Essid = " << GetEssid();
-}
-
-ostream& operator << (ostream& os, ManagementFrame const& header)
-{
-    header.Put(os);
-    return os;
-}
-
-/*******************************/
-AssociationRequestFrame::AssociationRequestFrame(std::shared_ptr<uchar_t> theBuff, 
-                                                 size_t theOffset, size_t theFrameSize)
-    : ManagementFrame(theBuff, theOffset, theFrameSize), ptr(theBuff.get() + theOffset)
-{}
-
-AssociationRequestFrame::AssociationRequestFrame(const AssociationRequestFrame& right) 
-    : ManagementFrame(right), ptr(buf.get() + offset)
-{}
-
-ManagementFrame* AssociationRequestFrame::CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize)
-{
-    return new AssociationRequestFrame(buff, offset, frameSize);
-}
-
-size_t AssociationRequestFrame::GetFixFieldSize() const
-{
-    return AssociationRequestFixedFieldSize;
-}
-
-uint16_t AssociationRequestFrame::GetListenInterval() const
-{
-    uint16_t value;
-    Read16(ptr + ListenInterval, value);
-    return value;
-}
-
-void AssociationRequestFrame::Put(std::ostream& os) const
-{
-    ManagementFrame::Put(os);
-    os << ", ListenInterval = " << (uint_t)GetListenInterval();
-}
-
-/*******************************/
-BeaconFrame::BeaconFrame(std::shared_ptr<uchar_t> theBuff, 
-                         size_t theOffset, size_t theFrameSize)
-    : ManagementFrame(theBuff, theOffset, theFrameSize), ptr(theBuff.get() + theOffset)
-{}
-
-BeaconFrame::BeaconFrame(const BeaconFrame& right) : ManagementFrame(right), ptr(buf.get() + offset)
-{}
-
-ManagementFrame* BeaconFrame::CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize)
-{
-    return new BeaconFrame(buff, offset, frameSize);
-}
-
-size_t BeaconFrame::GetFixFieldSize() const
-{
-    return BeaconFixedFieldSize;
-}
-
-uchar_t* BeaconFrame::GetTimeStamp()
-{
-    return ptr + TimeStamp;
-}
-
-uint16_t BeaconFrame::GetBeaconInterval() const
-{
-    uint16_t value;
-    Read16(ptr + BeaconInterval, value);
-    return value;
-}
-
-uchar_t BeaconFrame::GetEssCapabilityBit() const
-{
-    uchar_t value = ptr[CapabilityInfo] & 0x1;
-    return value;
-}
-
-uchar_t BeaconFrame::GetIbssStatusBit() const
-{
-    uchar_t value = (ptr[CapabilityInfo] >> 1) & 0x1;
-    return value;
-}
-
-uchar_t BeaconFrame::GetPrivacyBit() const
-{
-    uchar_t value = (ptr[CapabilityInfo] >> 4) & 0x1;
-    return value;
-}
-
-void BeaconFrame::Put(std::ostream& os) const
-{
-    ManagementFrame::Put(os);
-    os << ", ESS bit = " << (uint_t)GetEssCapabilityBit()
-        << ", IBSS status bit = " << (uint_t)GetIbssStatusBit();
-}
-
-/*******************************/
-ProbeResponseFrame::ProbeResponseFrame(std::shared_ptr<uchar_t> theBuff, 
-                                       size_t theOffset, size_t theFrameSize)
-    : ManagementFrame(theBuff, theOffset, theFrameSize), ptr(theBuff.get() + theOffset)
-{}
-
-ProbeResponseFrame::ProbeResponseFrame(const ProbeResponseFrame& right)
-    : ManagementFrame(right), ptr(buf.get() + offset)
-{}
-
-ManagementFrame* ProbeResponseFrame::CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize)
-{
-    return new ProbeResponseFrame(buff, offset, frameSize);
-}
-
-size_t ProbeResponseFrame::GetFixFieldSize() const
-{
-    return ProbeResponseFixedFieldSize;
-}
-
-uchar_t* ProbeResponseFrame::GetTimeStamp()
-{
-    return ptr + BeaconFrame::TimeStamp;
-}
-
-uint16_t ProbeResponseFrame::GetBeaconInterval() const
-{
-    uint16_t value;
-    Read16(ptr + BeaconFrame::BeaconInterval, value);
-    return value;
-}
-
-uchar_t ProbeResponseFrame::GetEssCapabilityBit() const
-{
-    uchar_t value = ptr[BeaconFrame::CapabilityInfo] & 0x1;
-    return value;
-}
-
-uchar_t ProbeResponseFrame::GetIbssStatusBit() const
-{
-    uchar_t value = (ptr[BeaconFrame::CapabilityInfo] >> 1) & 0x1;
-    return value;
-}
-
-uchar_t ProbeResponseFrame::GetPrivacyBit() const
-{
-    uchar_t value = (ptr[BeaconFrame::CapabilityInfo] >> 4) & 0x1;
-    return value;
-}
-
-void ProbeResponseFrame::Put(std::ostream& os) const
-{
-    ManagementFrame::Put(os);
-    os << ", ESS bit = " << (uint_t)GetEssCapabilityBit()
-        << ", IBSS status bit = " << (uint_t)GetIbssStatusBit();
-}
-
-/*******************************/
-ProbeRequestFrame::ProbeRequestFrame(std::shared_ptr<uchar_t> theBuff, 
-                                     size_t theOffset, size_t theFrameSize)
-    : ManagementFrame(theBuff, theOffset, theFrameSize)
-{}
-
-ProbeRequestFrame::ProbeRequestFrame(const ProbeRequestFrame& right)
-    : ManagementFrame(right)
-{}
-
-ManagementFrame* ProbeRequestFrame::CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize)
-{
-    return new ProbeRequestFrame(buff, offset, frameSize);
-}
-
-size_t ProbeRequestFrame::GetFixFieldSize() const
-{
-    return ProbeRequestFixedFieldSize;
-}
-
 /*******************************/
 H802dot11::H802dot11(const char *fileName, size_t offset, size_t theFrameSize)
     : buf(new uchar_t[theFrameSize]),
-    frameSize(theFrameSize), managementFrame(nullptr)
+      frameSize(theFrameSize)
 {
     fstream pcapFile(fileName, ios_base::in | ios::binary);
     if (pcapFile == nullptr)
@@ -289,23 +78,18 @@ H802dot11::H802dot11(const char *fileName, size_t offset, size_t theFrameSize)
     pcapFile.seekp(offset);
     pcapFile.read(reinterpret_cast<char*>(buf.get()), frameSize);
 
-    classFactor.insert(make_pair((AssociationRequest << 2) | ManagementFrameType, 
-        make_pair(AssociationRequestFrame::CreateInstance, AssociationRequestMacHeaderSize)));
-    classFactor.insert(make_pair((Beacon << 2) | ManagementFrameType, 
-        make_pair(BeaconFrame::CreateInstance, BeaconMacHeaderSize)));
-    classFactor.insert(make_pair((ProbeResponse << 2) | ManagementFrameType, 
-        make_pair(ProbeResponseFrame::CreateInstance, ProbeResponseMacHeaderSize)));
-    classFactor.insert(make_pair((ProbeRequest << 2) | ManagementFrameType, 
-        make_pair(ProbeRequestFrame::CreateInstance, ProbeRequestMacHeaderSize)));
+    //classFactor.insert(make_pair((AssociationRequest << 2) | ManagementFrameType, 
+    //    make_pair(AssociationRequestFrame::CreateInstance, AssociationRequestMacHeaderSize)));
+    //classFactor.insert(make_pair((Beacon << 2) | ManagementFrameType, 
+    //    make_pair(BeaconFrame::CreateInstance, BeaconMacHeaderSize)));
+    //classFactor.insert(make_pair((ProbeResponse << 2) | ManagementFrameType, 
+    //    make_pair(ProbeResponseFrame::CreateInstance, ProbeResponseMacHeaderSize)));
+    //classFactor.insert(make_pair((ProbeRequest << 2) | ManagementFrameType, 
+    //    make_pair(ProbeRequestFrame::CreateInstance, ProbeRequestMacHeaderSize)));
 }
 
 H802dot11::~H802dot11() 
-{
-    if (managementFrame != nullptr)
-    {
-        delete managementFrame;
-    }
-}
+{}
 
 uchar_t H802dot11::GetVersion() const
 {
@@ -338,6 +122,7 @@ void H802dot11::Put(std::ostream& os) const
 
     os << "bssid  = " << GetBssid() << endl;
     os << "dstMac = " << GetDestMac() << endl;
+    os << MemStream<uchar_t>(buf.get(), 32) << endl;
 }
 
 uchar_t H802dot11::GetToDs() const
@@ -378,27 +163,221 @@ Mac H802dot11::GetDestMac() const
     return Mac(buf.get() + offset[toDs][fromDs]);
 }
 
-ManagementFrame& H802dot11::GetManagementFrame()
+shared_ptr<uchar_t> H802dot11::GetBuf() const
 {
-    assert(GetType() == ManagementFrameType);
-    if (managementFrame != nullptr)
-    {
-        return *managementFrame;
-    }
-
-    uchar_t type = (GetSubtype() << 2) | GetType();
-    map<uchar_t, pair<FrameFactor, size_t>>::iterator iter;
-    iter = classFactor.find(type);
-    assert(iter != classFactor.end());
-    managementFrame = iter->second.first(buf, iter->second.second, frameSize - iter->second.second);
-
-    return *managementFrame;
+    return buf;
 }
 
-ostream& operator << (ostream& os, H802dot11 const& h802dot11)
+size_t H802dot11::GetSize() const
+{
+    return frameSize;
+}
+
+ostream& operator << (ostream& os, const H802dot11& h802dot11)
 {
     h802dot11.Put(os);
     return os;
 }
+
+/******************************/
+Frame::Frame(std::shared_ptr<uchar_t> theBuf, size_t theOffset, size_t theframeSize)
+    : buf(theBuf), offset(theOffset), frameSize(theframeSize)
+{
+}
+
+/******************************/
+ManagementFrame::ManagementFrame(std::shared_ptr<uchar_t> buf, size_t offset, size_t frameSize)
+    : Frame(buf, offset, frameSize)
+{}
+
+ManagementFrame::ManagementFrame(const ManagementFrame& right)
+    : Frame(right.buf, right.offset, right.frameSize)
+{}
+
+string ManagementFrame::GetEssid() const
+{
+    uchar_t* ptr;
+    string essid;
+    for (ptr = buf.get() + offset + GetFixFieldSize(); 
+         ptr < buf.get() + offset + GetFixFieldSize() + frameSize; 
+         ptr = ptr + 2 + ptr[1])
+    {
+        if (ptr[0] == 0)
+        {
+            if (ptr[1] > 0 && ptr[2] != '\0')
+            {
+                essid.append(reinterpret_cast<char*>(ptr + 2), ptr[1]);
+            }
+            break;
+        }
+    }
+
+    return essid;
+}
+
+void ManagementFrame::Put(ostream& os) const
+{
+    os << "Essid = " << GetEssid();
+}
+
+ostream& operator << (ostream& os, ManagementFrame const& header)
+{
+    header.Put(os);
+    return os;
+}
+
+/*******************************/
+AssociationRequestFrame::AssociationRequestFrame(const H802dot11& h802dot11)
+    : ManagementFrame(h802dot11.GetBuf(), AssociationRequestMacHeaderSize, 
+                      h802dot11.GetSize() - AssociationRequestMacHeaderSize)
+{}
+
+AssociationRequestFrame::AssociationRequestFrame(const AssociationRequestFrame& right) 
+    : ManagementFrame(right.buf, right.offset, right.frameSize)
+{}
+
+size_t AssociationRequestFrame::GetFixFieldSize() const
+{
+    return AssociationRequestFixedFieldSize;
+}
+
+uint16_t AssociationRequestFrame::GetListenInterval() const
+{
+    uint16_t value;
+    Read16(buf.get() + offset + ListenInterval, value);
+    return value;
+}
+
+void AssociationRequestFrame::Put(std::ostream& os) const
+{
+    ManagementFrame::Put(os);
+    os << ", ListenInterval = " << (uint_t)GetListenInterval();
+}
+
+/*******************************/
+BeaconFrame::BeaconFrame(const H802dot11& h802dot11)
+    : ManagementFrame(h802dot11.GetBuf(), BeaconMacHeaderSize,
+      h802dot11.GetSize() - BeaconMacHeaderSize)
+{}
+
+BeaconFrame::BeaconFrame(const BeaconFrame& right)
+    : ManagementFrame(right.buf, right.offset, right.frameSize)
+{}
+
+size_t BeaconFrame::GetFixFieldSize() const
+{
+    return BeaconFixedFieldSize;
+}
+
+uchar_t* BeaconFrame::GetTimeStamp()
+{
+    return buf.get() + offset + TimeStamp;
+}
+
+uint16_t BeaconFrame::GetBeaconInterval() const
+{
+    uint16_t value;
+    Read16(buf.get() + offset + BeaconInterval, value);
+    return value;
+}
+
+uchar_t BeaconFrame::GetEssCapabilityBit() const
+{
+    uchar_t* ptr = buf.get() + offset;
+    uchar_t value = ptr[CapabilityInfo] & 0x1;
+    return value;
+}
+
+uchar_t BeaconFrame::GetIbssStatusBit() const
+{
+    uchar_t* ptr = buf.get() + offset;
+    uchar_t value = (ptr[CapabilityInfo] >> 1) & 0x1;
+    return value;
+}
+
+uchar_t BeaconFrame::GetPrivacyBit() const
+{
+    uchar_t* ptr = buf.get() + offset;
+    uchar_t value = (ptr[CapabilityInfo] >> 4) & 0x1;
+    return value;
+}
+
+void BeaconFrame::Put(std::ostream& os) const
+{
+    ManagementFrame::Put(os);
+    os << ", ESS bit = " << (uint_t)GetEssCapabilityBit()
+        << ", IBSS status bit = " << (uint_t)GetIbssStatusBit();
+}
+
+/*******************************/
+ProbeResponseFrame::ProbeResponseFrame(const H802dot11& h802dot11)
+    : ManagementFrame(h802dot11.GetBuf(), ProbeResponseMacHeaderSize,
+      h802dot11.GetSize() - ProbeResponseMacHeaderSize)
+{}
+
+ProbeResponseFrame::ProbeResponseFrame(const ProbeResponseFrame& right)
+    : ManagementFrame(right.buf, right.offset, right.frameSize)
+{}
+
+size_t ProbeResponseFrame::GetFixFieldSize() const
+{
+    return ProbeResponseFixedFieldSize;
+}
+
+uchar_t* ProbeResponseFrame::GetTimeStamp()
+{
+    return buf.get() + offset + BeaconFrame::TimeStamp;
+}
+
+uint16_t ProbeResponseFrame::GetBetweenInterval() const
+{
+    uint16_t value;
+    Read16(buf.get() + offset + BetweenInterval, value);
+    return value;
+}
+
+uchar_t ProbeResponseFrame::GetEssCapabilityBit() const
+{
+    uchar_t* ptr = buf.get() + offset;
+    uchar_t value = ptr[CapabilityInfo] & 0x1;
+    return value;
+}
+
+uchar_t ProbeResponseFrame::GetIbssStatusBit() const
+{
+    uchar_t* ptr = buf.get() + offset;
+    uchar_t value = (ptr[CapabilityInfo] >> 1) & 0x1;
+    return value;
+}
+
+uchar_t ProbeResponseFrame::GetPrivacyBit() const
+{
+    uchar_t* ptr = buf.get() + offset;
+    uchar_t value = (ptr[CapabilityInfo] >> 4) & 0x1;
+    return value;
+}
+
+void ProbeResponseFrame::Put(std::ostream& os) const
+{
+    ManagementFrame::Put(os);
+    os << ", ESS bit = " << (uint_t)GetEssCapabilityBit()
+        << ", IBSS status bit = " << (uint_t)GetIbssStatusBit();
+}
+
+/*******************************/
+ProbeRequestFrame::ProbeRequestFrame(const H802dot11& h802dot11)
+    : ManagementFrame(h802dot11.GetBuf(), ProbeRequestMacHeaderSize,
+      h802dot11.GetSize() - ProbeRequestMacHeaderSize)
+{}
+
+ProbeRequestFrame::ProbeRequestFrame(const ProbeRequestFrame& right)
+    : ManagementFrame(right.buf, right.offset, right.frameSize)
+{}
+
+size_t ProbeRequestFrame::GetFixFieldSize() const
+{
+    return ProbeRequestFixedFieldSize;
+}
+
 CxxEndNameSpace
 

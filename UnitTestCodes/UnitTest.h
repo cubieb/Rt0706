@@ -3,7 +3,5 @@
 
 CxxBeginNameSpace(UnitTest)
 
-void Crack();
-
 CxxEndNameSpace
 #endif

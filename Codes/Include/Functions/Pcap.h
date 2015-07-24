@@ -14,10 +14,10 @@ enum LinkType: uint32_t
     PpiHeader      = 192
 };
 
-class PcapFileHeader
+class PcapFile
 {
 public:
-    PcapFileHeader(const char *fileName);
+    PcapFile(const char *fileName);
     size_t GetHeaderSize();
     size_t GetFileSize();
 
@@ -31,7 +31,7 @@ public:
     uint32_t linkType;
 
 private:
-    PcapFileHeader();
+    PcapFile();
     size_t fileSize;
 };
 
@@ -88,6 +88,42 @@ enum H802dot11Subtype: uchar_t
     DataAndCfAckAndCfPoll = 0x7
 };
 
+/*
+802.11 Mac Frame:
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Frame Control         |     Duration ID               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Address 1                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Address 1          |      Address 2                |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Address 2                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                            Address 3                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Address 3          |         Seq-Ctl               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                            Address 4                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Address 4          |         Frame Body ...        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+Frame Control:
+    Protocol:  bit 0~1
+    Type    :  bit 2~3
+    Sub Type:  bit 4~7
+    To Ds   :  bit 8
+    From Ds :  bit 9
+    More Tag:  bit 10
+    Retry   :  bit 11 
+    Pwr Mgmt:  bit 12
+    More Data: bit 13
+    Wep     :  bit 14
+    Order   :  bit 15
+*/
+
 enum MacHeaderSize: uint32_t
 {
     AssociationRequestMacHeaderSize = 24,
@@ -104,115 +140,6 @@ enum ManagementFrameFixedFieldSize
     ProbeRequestFixedFieldSize = 0,
 };
 
-class ManagementFrame
-{
-public:
-    ManagementFrame(std::shared_ptr<uchar_t> theBuff, size_t theOffset, size_t theFrameSize);
-    ManagementFrame(const ManagementFrame&);
-
-    virtual size_t GetFixFieldSize() const = 0;
-    std::string GetEssid() const;
-
-    /* the following function is provided just for debug */
-    virtual void Put(std::ostream& os) const;
-
-protected:    
-    std::shared_ptr<uchar_t> buf;
-    size_t offset;    /* this management frame started at the buf.get() + offset */    
-    size_t frameSize; /* the whole packet length */
-
-private:
-    ManagementFrame();
-};
-std::ostream& operator << (std::ostream& os, ManagementFrame const& frame);
-
-class AssociationRequestFrame: public ManagementFrame
-{
-public:
-    enum BeaconFrameOffset: uint32_t
-    {
-        CapabilityInfo  = 0,
-        ListenInterval  = 2
-    };
-    AssociationRequestFrame(std::shared_ptr<uchar_t> theBuff, size_t theOffset, size_t theFrameSize);
-    AssociationRequestFrame(const AssociationRequestFrame&);
-
-    static ManagementFrame* CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize);
-
-    size_t GetFixFieldSize() const;
-    uint16_t GetListenInterval() const;
-
-    void Put(std::ostream& os) const;
-
-private:
-    uchar_t* ptr;  /* ptr = buf.get() + offset, initialized by contruct function */
-};
-
-class BeaconFrame: public ManagementFrame
-{
-public:
-    enum BeaconFrameOffset: uint32_t
-    {
-        TimeStamp       = 0,
-        BeaconInterval  = 8,
-        CapabilityInfo  = 10,    
-    };
-    BeaconFrame(std::shared_ptr<uchar_t> theBuff, size_t theOffset, size_t theFrameSize);
-    BeaconFrame(const BeaconFrame&);
-
-    static ManagementFrame* CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize);
-
-    size_t GetFixFieldSize() const;
-    uchar_t* GetTimeStamp();
-    uint16_t GetBeaconInterval() const;
-
-    uchar_t GetEssCapabilityBit() const;
-    uchar_t GetIbssStatusBit() const;
-    uchar_t GetPrivacyBit() const;
-
-    void Put(std::ostream& os) const;
-
-private:
-    uchar_t* ptr;  /* ptr = buf.get() + offset, initialized by contruct function */
-};
-
-class ProbeResponseFrame: public ManagementFrame
-{
-public:
-    ProbeResponseFrame(std::shared_ptr<uchar_t> theBuff, size_t theOffset, size_t theFrameSize);
-    ProbeResponseFrame(const ProbeResponseFrame&);
-
-    static ManagementFrame* CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize);
-
-    size_t GetFixFieldSize() const;
-    uchar_t* GetTimeStamp();
-    uint16_t GetBeaconInterval() const;
-
-    uchar_t GetEssCapabilityBit() const;
-    uchar_t GetIbssStatusBit() const;
-    uchar_t GetPrivacyBit() const;
-
-    void Put(std::ostream& os) const;
-
-private:
-    uchar_t* ptr;  /* ptr = buf.get() + offset, initialized by contruct function */
-};
-
-class ProbeRequestFrame: public ManagementFrame
-{
-public:
-    ProbeRequestFrame(std::shared_ptr<uchar_t> theBuff, size_t theOffset, size_t theFrameSize);
-    ProbeRequestFrame(const ProbeRequestFrame&);
-
-    static ManagementFrame* CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize);
-
-    size_t GetFixFieldSize() const;
-};
-
 enum H802dot11Offset: uint32_t
 {
     FrameControl = 0,
@@ -227,11 +154,45 @@ enum H802dot11Offset: uint32_t
     CtsFrameMacHeaderSize        = 10
 };
 
+/* 
+Refer to 80211.FrameFormat.pdf, page 38 for details about management frame.
+802.11 Mac Header for Management Frame:
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Frame Control         |     Duration ID               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Address 1                           |
++                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |      Address 2                |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                            Address 3                          |
++                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |         Seq-Ctl               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   Information Elements and Fixed Fields ... ...(variable)     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+Management Frame:
+  1) Beacon Frame
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         Timestamp                             |
++                                                               +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|        Beacon Interval        |   Capability Information      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      SSID  ... ...(variable)                  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+
 class H802dot11
 {
 public:
-    typedef std::function<ManagementFrame*(std::shared_ptr<uchar_t> buff, 
-        size_t, size_t)> FrameFactor;
     H802dot11(const char *fileName, size_t offset, size_t theFrameSize);
     ~H802dot11();
 
@@ -245,18 +206,133 @@ public:
     Mac GetBssid() const;
     Mac GetDestMac() const;
 
-    ManagementFrame& GetManagementFrame();
+    std::shared_ptr<uchar_t> GetBuf() const;
+    size_t GetSize() const;
 
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 private:
     std::shared_ptr<uchar_t> buf;
-    size_t frameSize;   /* the whole packet length */
-    ManagementFrame* managementFrame;
-    std::map<uchar_t, std::pair<FrameFactor, size_t>> classFactor;
+    size_t  frameSize;   /* the whole packet's size, the following mgmt/data... frame included */
+};
+std::ostream& operator << (std::ostream& os, const H802dot11& h802dot11);
+
+
+class Frame
+{
+public:
+    Frame(std::shared_ptr<uchar_t> theBuff, size_t theOffset, size_t theSize);
+    
+protected:
+    std::shared_ptr<uchar_t> buf;
+    size_t  offset; /* this mgmt/data/control frame started at the buf.get() + offset */
+    size_t  frameSize;   /* current frame content: buf.get()[offset, offset + size) . */
 };
 
-std::ostream& operator << (std::ostream& os, H802dot11 const& h802dot11);
-CxxEndNameSpace
+class ManagementFrame: public Frame
+{
+public:
+    ManagementFrame(std::shared_ptr<uchar_t> buff, size_t offset, size_t size);
+    ManagementFrame(const ManagementFrame&);
 
+    virtual size_t GetFixFieldSize() const = 0;
+    std::string GetEssid() const;
+
+    /* the following function is provided just for debug */
+    virtual void Put(std::ostream& os) const;
+};
+std::ostream& operator << (std::ostream& os, ManagementFrame const& frame);
+
+
+class AssociationRequestFrame: public ManagementFrame
+{
+public:
+    enum AssociationRequestFrameOffset: uint32_t
+    {
+        CapabilityInfo  = 0,
+        ListenInterval  = 2
+    };
+    AssociationRequestFrame(const H802dot11& h802dot11);
+    AssociationRequestFrame(const AssociationRequestFrame&);
+
+    size_t GetFixFieldSize() const;
+    uint16_t GetListenInterval() const;
+
+    void Put(std::ostream& os) const;
+
+};
+
+class BeaconFrame: public ManagementFrame
+{
+public:
+    enum BeaconFrameOffset: uint32_t
+    {
+        TimeStamp       = 0,
+        BeaconInterval  = 8,
+        CapabilityInfo  = 10,    
+    };
+    BeaconFrame(const H802dot11& h802dot11);
+    BeaconFrame(const BeaconFrame&);
+    
+    size_t GetFixFieldSize() const;
+    uchar_t* GetTimeStamp();
+    uint16_t GetBeaconInterval() const;
+
+    uchar_t GetEssCapabilityBit() const;
+    uchar_t GetIbssStatusBit() const;
+    uchar_t GetPrivacyBit() const;
+
+    void Put(std::ostream& os) const;
+};
+
+class ProbeResponseFrame: public ManagementFrame
+{
+public:
+    enum ProbeResponseFrameOffset: uint32_t
+    {
+        TimeStamp       = 0,
+        BetweenInterval  = 8,
+        CapabilityInfo  = 10,    
+    };
+
+    ProbeResponseFrame(const H802dot11& h802dot11);
+    ProbeResponseFrame(const ProbeResponseFrame&);
+
+    static ManagementFrame* CreateInstance(std::shared_ptr<uchar_t> buff, 
+        size_t offset, size_t frameSize);
+
+    size_t GetFixFieldSize() const;
+    uchar_t* GetTimeStamp();
+    uint16_t GetBetweenInterval() const;
+
+    uchar_t GetEssCapabilityBit() const;
+    uchar_t GetIbssStatusBit() const;
+    uchar_t GetPrivacyBit() const;
+
+    void Put(std::ostream& os) const;
+};
+
+class ProbeRequestFrame: public ManagementFrame
+{
+public:
+    ProbeRequestFrame(const H802dot11& h802dot11);
+    ProbeRequestFrame(const ProbeRequestFrame&);
+
+    static ManagementFrame* CreateInstance(std::shared_ptr<uchar_t> buff, 
+        size_t offset, size_t frameSize);
+
+    size_t GetFixFieldSize() const;
+};
+
+#if 0
+/*
+    Refer 80211.FrameFormat.pdf page 34 for detail about data frame.
+*/
+class DataFrame: public Frame
+{
+};
+#endif
+
+
+CxxEndNameSpace
 #endif
