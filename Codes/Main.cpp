@@ -81,7 +81,6 @@ int known_clear(void *clear, int *clen, int *weight, DataFrame& dataFrame)
         if (weight)
             weight[0] = 256;
         return 1;
-
     }
 
     return 1;
@@ -164,27 +163,30 @@ void Crack()
                 ap->SetEssid(mgmtFrame->GetEssid());
             }
         }
+
         if (h802dot11->GetTypeBits() != H802dot11Type::DataFrameType)
         {
             continue; //line 1410, aircrack-ng.c, aircrack-ng-1.2-rc2
-        }
+        }        
 
         if (h802dot11->GetMacHeaderSize() + 16 > h802dot11->GetBufSize())
         {
             continue;
         }
 
-        prtstrm << *h802dot11 << endl;
-        uchar_t *frameBody  = h802dot11->GetFrameBody();
+        DataFrame& dataFrame = *dynamic_pointer_cast<DataFrame>(h802dot11);
+        prtstrm << dataFrame << endl;
 
         //line 1424,  aircrack-ng.c, aircrack-ng-1.2-rc2   ???
         /* frameBody[0] frameBody[1] frameBody[2] are WEP Initialization Vector.
          */
-        if (frameBody[0] != frameBody[1] || frameBody[2] != 0x03)
+        uchar_t *wepIv = dataFrame.GetWepIvPtr();
+        uchar_t *wepKeyIndex = dataFrame.GetWepKeyIndexPtr();
+        if (wepIv[0] != wepIv[1] || wepIv[2] != 0x03)
         {
             ap->SetCrypt(Crypt::Wep);
 
-            if ((frameBody[3] & 0x20) != 0)
+            if ((wepKeyIndex[0] & 0x20) != 0)
             {
                 ap->SetCrypt(Crypt::Wpa);
             }
@@ -195,8 +197,10 @@ void Crack()
 
         if (option.DoPtw())
         {
-            uchar_t *body = frameBody;
-            size_t dataSize = h802dot11->GetBufSize() - h802dot11->GetMacHeaderSize() - WepParameter::GetSize(); 
+            uchar_t *body = dataFrame.GetFrameBody();
+            size_t dataSize = dataFrame.GetBufSize() 
+                              - dataFrame.GetMacHeaderSize() 
+                              - dataFrame.GetWepParaTotalSize(); 
 
             uchar_t clear[2048];
             int     weight[16];
@@ -214,7 +218,7 @@ void Crack()
 			memset(clear, 0, sizeof(clear));
 
             int clearSize, i, j, k; 
-            k = known_clear(clear, &clearSize, weight, *dynamic_pointer_cast<DataFrame>(h802dot11));
+            k = known_clear(clear, &clearSize, weight, dataFrame);
             for (j=0; j<k; j++)
             {
                 for (i = 0; i < clearSize; i++)
@@ -238,9 +242,7 @@ void Crack()
 
 int main()
 {
-    //Crack();
-
-    PtwAttackState state;
+    Crack();
 
     _CrtMemDumpAllObjectsSince(nullptr);
     system("Pause");
