@@ -75,10 +75,6 @@ ostream& operator << (ostream& os, Rc4 const& rc4)
     return os;
 }
 
-CxxEndNameSpace /*Router*/
-
-using namespace Router;
-
 ostream& operator << (ostream& os, RC4_KEY const& rc4)
 {
     cout << "x and y : x = " << rc4.x << ", y = " << rc4.y << endl;
@@ -87,7 +83,10 @@ ostream& operator << (ostream& os, RC4_KEY const& rc4)
     return os;
 }
 
+CxxEndNameSpace /*Router*/
+
 using namespace Router;
+
 // to verify the correction, use the following CLI command:
 //system("echo \"this is a test file\" "
 //    "| openssl enc -rc4 -nopad -nosalt -K 31313131323232323333333334343434 "

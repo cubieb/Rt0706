@@ -31,7 +31,7 @@ public:
     uint32_t linkType;
 
 private:
-    PcapFile();
+    PcapFile() {}
     size_t fileSize;
 };
 
@@ -95,19 +95,19 @@ enum H802dot11Subtype: uchar_t
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |         Frame Control         |     Duration ID               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Address 1                           |
+|                           Address 1                           =
+++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=            Address 1          |      Address 2                =
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Address 1          |      Address 2                |
+=                           Address 2                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Address 2                           |
+|                            Address 3                          =
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                            Address 3                          |
+=            Address 3          |         Seq-Ctl               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Address 3          |         Seq-Ctl               |
+|                            Address 4                          =
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                            Address 4                          |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Address 4          |         Frame Body ...        |
+=            Address 4          |         Frame Body ...        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 Frame Control:
@@ -130,6 +130,8 @@ enum MacHeaderSize: uint32_t
     BeaconMacHeaderSize = 24,
     ProbeResponseMacHeaderSize = 24,
     ProbeRequestMacHeaderSize = 24,
+    DataMacHeaderSizeXx = 24,
+    DataMacHeaderSize11 = 30,
 };
 
 enum ManagementFrameFixedFieldSize
@@ -147,11 +149,86 @@ enum H802dot11Offset: uint32_t
     Addr1        = 4,
     Addr2        = 10,
     Addr3        = 16,
-    SeqControl   = 22,
+    Addr4        = 22,
 
     ManagementFrameMacHeaderSize = 24,
     RtsFrameMacHeaderSize        = 16,
     CtsFrameMacHeaderSize        = 10
+};
+
+class H802dot11
+{
+public:
+    H802dot11(const std::shared_ptr<uchar_t>& theBuf, size_t theBufSize);
+    virtual ~H802dot11();
+
+    size_t GetBufSize() const;
+    uchar_t GetProtocolBits() const;
+    uchar_t GetTypeBits() const;
+    uchar_t GetSubtypeBits() const;
+
+    uchar_t GetToDsBit() const;
+    uchar_t GetFromDsBit() const;
+    uchar_t GetMoreTagBit() const;
+    uchar_t GetRetryBit() const;
+    uchar_t GetPowerMgmtBit() const;
+    uchar_t GetMoreDataBit() const;
+    uchar_t GetWepBit() const;
+        
+    uchar_t* GetFramePtr() const;
+    uchar_t* GetFrameBody() const;
+
+    virtual Mac GetDestMac() const = 0;
+    virtual Mac GetBssid() const = 0;
+    virtual size_t GetMacHeaderSize() const = 0;
+    
+    /* the following function is provided just for debug */
+    virtual void Put(std::ostream& os) const;
+
+protected:
+    std::shared_ptr<uchar_t> buf;
+    size_t  bufSize;
+};
+
+inline std::ostream& operator << (std::ostream& os, const H802dot11& h802dot11)
+{
+    h802dot11.Put(os);
+    return os;
+}
+
+class ManagementFrame: public H802dot11
+{
+public:
+    ManagementFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+    virtual ~ManagementFrame();
+
+    Mac GetDestMac() const;
+    Mac GetBssid() const;
+    std::string GetEssid() const;
+        
+    size_t GetMacHeaderSize() const = 0;
+    virtual size_t GetFixedParaSize() const = 0;
+
+    virtual void Put(std::ostream& os) const;
+};
+
+class AssociationRequestFrame: public ManagementFrame
+{
+public:
+    enum AssociationRequestFrameOffset: uint32_t
+    {
+        CapabilityInfo  = 0,
+        ListenInterval  = 2
+    };
+    AssociationRequestFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+    ~AssociationRequestFrame();
+
+    size_t GetMacHeaderSize() const;
+    size_t GetFixedParaSize() const;
+    uint16_t GetListenInterval() const;
+
+    /* the following function is provided just for debug */
+    void Put(std::ostream& os) const;
 };
 
 /* 
@@ -162,106 +239,42 @@ Refer to 80211.FrameFormat.pdf, page 38 for details about management frame.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |         Frame Control         |     Duration ID               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Address 1                           |
-+                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                               |      Address 2                |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
-|                                                               |
+|                           Address 1                           =
+++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=            Address 1          |      Address 2                =
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                            Address 3                          |
-+                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                               |         Seq-Ctl               |
+=                           Address 2                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|   Information Elements and Fixed Fields ... ...(variable)     |
+|                            Address 3                          =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=            Address 3          |         Seq-Ctl               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                 Frame Body ... ...(variable)                  |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-Management Frame:
-  1) Beacon Frame
+1) Beacon Frame, Frame Body of 802.11 Frame (flowing the Mac Header)
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                         Timestamp                             |
-+                                                               +
-|                                                               |
+|                         Timestamp                             =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=                         Timestamp                             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |        Beacon Interval        |   Capability Information      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                      SSID  ... ...(variable)                  |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         FH Parameter Set (Opt)                  | DS Parameter=
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=  Set (Opt)    |          CF Parameter Set (Opt)               =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=                                                               =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=               |             IBSS Parameter Set (Opt)          =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=               |           TIM (Opt) ... ... (variable)        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-
-class H802dot11
-{
-public:
-    H802dot11(const char *fileName, size_t offset, size_t theFrameSize);
-    ~H802dot11();
-
-    uchar_t GetVersion() const;
-    uchar_t GetType() const;
-    uchar_t GetSubtype() const;
-
-    uchar_t GetToDs() const;
-    uchar_t GetFromDs() const;
-
-    Mac GetBssid() const;
-    Mac GetDestMac() const;
-
-    std::shared_ptr<uchar_t> GetBuf() const;
-    size_t GetSize() const;
-
-    /* the following function is provided just for debug */
-    void Put(std::ostream& os) const;
-private:
-    std::shared_ptr<uchar_t> buf;
-    size_t  frameSize;   /* the whole packet's size, the following mgmt/data... frame included */
-};
-std::ostream& operator << (std::ostream& os, const H802dot11& h802dot11);
-
-
-class Frame
-{
-public:
-    Frame(std::shared_ptr<uchar_t> theBuff, size_t theOffset, size_t theSize);
-    
-protected:
-    std::shared_ptr<uchar_t> buf;
-    size_t  offset; /* this mgmt/data/control frame started at the buf.get() + offset */
-    size_t  frameSize;   /* current frame content: buf.get()[offset, offset + size) . */
-};
-
-class ManagementFrame: public Frame
-{
-public:
-    ManagementFrame(std::shared_ptr<uchar_t> buff, size_t offset, size_t size);
-    ManagementFrame(const ManagementFrame&);
-
-    virtual size_t GetFixFieldSize() const = 0;
-    std::string GetEssid() const;
-
-    /* the following function is provided just for debug */
-    virtual void Put(std::ostream& os) const;
-};
-std::ostream& operator << (std::ostream& os, ManagementFrame const& frame);
-
-
-class AssociationRequestFrame: public ManagementFrame
-{
-public:
-    enum AssociationRequestFrameOffset: uint32_t
-    {
-        CapabilityInfo  = 0,
-        ListenInterval  = 2
-    };
-    AssociationRequestFrame(const H802dot11& h802dot11);
-    AssociationRequestFrame(const AssociationRequestFrame&);
-
-    size_t GetFixFieldSize() const;
-    uint16_t GetListenInterval() const;
-
-    void Put(std::ostream& os) const;
-
-};
-
 class BeaconFrame: public ManagementFrame
 {
 public:
@@ -271,17 +284,22 @@ public:
         BeaconInterval  = 8,
         CapabilityInfo  = 10,    
     };
-    BeaconFrame(const H802dot11& h802dot11);
-    BeaconFrame(const BeaconFrame&);
+    BeaconFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+    ~BeaconFrame();
     
-    size_t GetFixFieldSize() const;
+    size_t GetMacHeaderSize() const;
+
+    /* Frame Body Data */
+    size_t GetFixedParaSize() const;
     uchar_t* GetTimeStamp();
     uint16_t GetBeaconInterval() const;
 
-    uchar_t GetEssCapabilityBit() const;
-    uchar_t GetIbssStatusBit() const;
-    uchar_t GetPrivacyBit() const;
+    /* Capability Information */
+    uchar_t GetEssOfCapabilityBit() const;
+    uchar_t GetIbssStatusOfCapabilityBit() const;
+    uchar_t GetPrivacyOfCapabilityBit() const;
 
+    /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 };
 
@@ -295,13 +313,11 @@ public:
         CapabilityInfo  = 10,    
     };
 
-    ProbeResponseFrame(const H802dot11& h802dot11);
-    ProbeResponseFrame(const ProbeResponseFrame&);
+    ProbeResponseFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+    ~ProbeResponseFrame();
 
-    static ManagementFrame* CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize);
-
-    size_t GetFixFieldSize() const;
+    size_t GetMacHeaderSize() const;
+    size_t GetFixedParaSize() const;
     uchar_t* GetTimeStamp();
     uint16_t GetBetweenInterval() const;
 
@@ -309,30 +325,123 @@ public:
     uchar_t GetIbssStatusBit() const;
     uchar_t GetPrivacyBit() const;
 
+    /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 };
 
 class ProbeRequestFrame: public ManagementFrame
 {
 public:
-    ProbeRequestFrame(const H802dot11& h802dot11);
-    ProbeRequestFrame(const ProbeRequestFrame&);
+    ProbeRequestFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+    ~ProbeRequestFrame();
 
-    static ManagementFrame* CreateInstance(std::shared_ptr<uchar_t> buff, 
-        size_t offset, size_t frameSize);
-
-    size_t GetFixFieldSize() const;
+    size_t GetMacHeaderSize() const;
+    size_t GetFixedParaSize() const;
 };
 
-#if 0
 /*
-    Refer 80211.FrameFormat.pdf page 34 for detail about data frame.
-*/
-class DataFrame: public Frame
-{
-};
-#endif
+Refer 80211.FrameFormat.pdf page 34 for detail about data frame.
 
+802.11 Mac Header for Data Frame:
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Frame Control         |     Duration ID               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Address 1                           =
+++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=            Address 1          |      Address 2                =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=                           Address 2                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                            Address 3                          =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=            Address 3          |         Seq-Ctl               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Address 4 (only when ToDs == 1 && FromDs ==1)         =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=                               |QosControl(only subtype bit4=1)|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Frame Body  ... ...(variable)             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+Addressing and DS Bits (BSSID is MAC address of AP WLAN interface):
+Function          To Ds   From Ds   Address 1   Address 2   Address 3   Address 4
+                                   (recevier)  (Transmiter)
+----------------  ------  -------  ----------  -----------  ----------  ----------
+IBSS              0       0        DA          SA           BSSID       not used
+To Ap (infra.)    1       0        BSSID       SA           DA          not used
+From Ap(infra.)   0       1        DA          BSSID        SA          not used
+WDS (bridge)      1       1        RA          TA           DA          SA
+
+1) WEP Data Frame, Frame Body of 802.11 Frame (flowing the Mac Header)
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     WEP Initialization Vector                 | WEP Key Index |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    *************
+|   LLC DSAP    |    LLC DSAP   |  LLC Control  | SNAP Org Code =                *
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                *
+=                     SNAP Org Code             |  SNAP Type    |    ciphertext  *
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                *
+|                      Data  ... ...(variable)                  |                *
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    *************
+|                            WEP ICV                            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+class DataFrame: public H802dot11
+{
+public: 
+    DataFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+    ~DataFrame();
+
+    Mac GetDestMac() const;
+    Mac GetSrcMac() const;
+    Mac GetBssid() const;
+    std::string GetEssid() const;
+    size_t GetMacHeaderSize() const;
+
+    /* Frame Body Data */
+    size_t GetWepParaTotalSize() const;
+    uchar_t* GetWepIv() const;
+    uchar_t* GetWepKeyIndex() const;
+    uchar_t* GetWepIcV() const;
+
+    /* the following function is provided just for debug */
+    void Put(std::ostream& os) const;
+};
+
+H802dot11* CreateFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+
+class WepParameter
+{
+public:
+    static size_t GetSize() 
+    {
+        return 8;
+    }
+
+private:
+    uchar_t initializationVector[3];
+    uchar_t keyIndex;
+    uchar_t integrityCheckValue[4];
+};
+
+class LlcSnap
+{
+public:
+    static size_t GetSize() {return 8;}
+    static const uchar_t* GetLlcSnapArp() 
+    {
+        static const uchar_t* llcSnapArp = (uchar_t*)"\xAA\xAA\x03\x00\x00\x00\x08\x06";
+        return llcSnapArp;
+    }
+    static const uchar_t* GetLlcSnapIp()
+    {
+        static const uchar_t* llcSnapIp = (uchar_t*)"\xAA\xAA\x03\x00\x00\x00\x08\x00";
+        return llcSnapIp;
+    }
+};
 
 CxxEndNameSpace
 #endif

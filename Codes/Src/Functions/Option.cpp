@@ -7,7 +7,7 @@ using namespace std;
 
 Option::Option()
 {
-    doPtw = false;
+    doPtw = true;
 }
 
 bool Option::DoForceBssid()

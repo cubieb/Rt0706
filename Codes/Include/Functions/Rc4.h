@@ -29,12 +29,11 @@ private:
 };
 
 std::ostream& operator << (std::ostream& os, Rc4 const& rc4);
-
-CxxEndNameSpace /*Router*/
-
 std::ostream& operator << (std::ostream& os, RC4_KEY const& rc4);
 
 void VerifyRc4Encrypt();
+
+CxxEndNameSpace /*Router*/
 
 #endif /* _Rc4_h_ */
 

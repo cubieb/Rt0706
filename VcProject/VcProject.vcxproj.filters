@@ -92,5 +92,8 @@
     <ClInclude Include="..\Codes\Include\Public\SystemError.h">
       <Filter>头文件\Public</Filter>
     </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\PtwLib.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
