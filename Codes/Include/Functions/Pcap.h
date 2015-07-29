@@ -4,14 +4,7 @@
 
 CxxBeginNameSpace(Router)
 
-enum LinkType: uint32_t
-{
-    Ethernet       = 1,
-    ieee802dot11   = 105,
-    PrismHeader    = 119,
-    RadiotapHeader = 127,
-    PpiHeader      = 192
-};
+
 
 enum H802dot11Type: uchar_t
 {

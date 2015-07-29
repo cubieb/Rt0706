@@ -71,4 +71,40 @@ size_t PcapPacketHeader::GetSize()
     return sizeof(struct timeval) + sizeof(uint32_t) + sizeof(uint32_t);
 }
 
+void PcapPktDbWrapper::Start() const
+{
+    PcapFile pcapFile(filename.c_str());
+    if (pcapFile.linkType != LinkType::ieee802dot11)
+    {
+        errstrm << "bad file type." << endl;
+        return;
+    }
+
+    if (pcapFile.linkType != LinkType::ieee802dot11)
+    {
+        errstrm << "bad file type." << endl;
+        return;
+    }
+
+    size_t offset = pcapFile.GetHeaderSize();
+    while (offset < pcapFile.GetFileSize())
+    {
+        PcapPacketHeader pcapPacketHeader(filename.c_str(), offset);
+        size_t packetOff = offset + pcapPacketHeader.GetSize();
+        offset = offset + pcapPacketHeader.caplen + pcapPacketHeader.GetSize();
+
+        if (pcapPacketHeader.caplen < 24)
+        {
+            continue;
+        }
+
+        shared_ptr<uchar_t> buf(new uchar_t[pcapPacketHeader.caplen], []( uchar_t *p ) { delete[] p; });
+        fstream pcapFile(filename.c_str(), ios_base::in | ios::binary);
+        pcapFile.seekp(packetOff);
+        pcapFile.read(reinterpret_cast<char*>(buf.get()), pcapPacketHeader.caplen);
+
+        trigger(buf, pcapPacketHeader.caplen);
+    }        
+}
+
 CxxEndNameSpace

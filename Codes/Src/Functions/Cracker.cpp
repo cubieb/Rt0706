@@ -17,7 +17,7 @@
 using namespace std;
 CxxBeginNameSpace(Router)
 
-Cracker::Cracker(): wrapper(new PcapPktDbWrapper<H802dot11>(bind(&Cracker::ReceivePacket, this, placeholders::_1)))
+Cracker::Cracker(): wrapper(new PcapPktDbWrapper(bind(&Cracker::ReceivePacket, this, placeholders::_1, placeholders::_2)))
 {    
 }
 
@@ -26,10 +26,10 @@ void Cracker::Start()
     wrapper->Start();
 }
 
-void Cracker::ReceivePacket(H802dot11* pkt)
+void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
 {
     Option& option = Option::GetInstance();
-    shared_ptr<H802dot11> h802dot11(pkt);
+    shared_ptr<H802dot11> h802dot11(CreateFrame(buf, bufSize));
 
     /* skip (uninteresting) control frames */
     if (!h802dot11 || h802dot11->GetTypeBits() == H802dot11Type::ControlFrameType)
