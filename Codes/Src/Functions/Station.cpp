@@ -2,6 +2,8 @@
 #include "Common.h"
 #include "Eapol.h"
 #include "Station.h"
+
+using namespace std;
 CxxBeginNameSpace(Router)
 
 St::St(const Mac& theMac): mac(theMac)

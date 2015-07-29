@@ -57,7 +57,7 @@
     <ClCompile Include="..\Codes\Src\Public\SystemError.cpp">
       <Filter>源文件\Public</Filter>
     </ClCompile>
-    <ClCompile Include="..\Codes\Src\Functions\OptionDbWrapper.cpp">
+    <ClCompile Include="..\Codes\Src\Functions\Cracker.cpp">
       <Filter>源文件\Functions</Filter>
     </ClCompile>
   </ItemGroup>
@@ -96,6 +96,12 @@
       <Filter>头文件\Public</Filter>
     </ClInclude>
     <ClInclude Include="..\Codes\Include\Functions\PtwLib.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\PktDbWrapper.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Cracker.h">
       <Filter>头文件\Functions</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,8 +2,8 @@
 #include "Common.h"
 #include "Option.h"
 
-CxxBeginNameSpace(Router)
 using namespace std;
+CxxBeginNameSpace(Router)
 
 Option::Option()
 {

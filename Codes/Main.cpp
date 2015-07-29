@@ -4,13 +4,15 @@
 
 #include "SystemInclude.h"
 #include "Common.h"
+#include "Debug.h"
+#include "SystemError.h" 
+
 #include "Rc4.h"
 #include "Pcap.h"
-#include "Debug.h"
 #include "AccessPoint.h"
 #include "Option.h"
 #include "PtwLib.h"
-#include "SystemError.h" 
+#include "Cracker.h"
 
 #include "Main.h"
 
@@ -85,8 +87,6 @@ int known_clear(void *clear, int *clen, int *weight, DataFrame& dataFrame)
 
     return 1;
 }
-
-
 
 void Crack()
 {
@@ -240,11 +240,14 @@ void Crack()
     }
 }
 
+
 int main()
 {
-    Crack();
+    //Crack();
+    Cracker cracker;
+    cracker.Start();
+
 
     _CrtMemDumpAllObjectsSince(nullptr);
-    system("Pause");
 	return 0;
 }

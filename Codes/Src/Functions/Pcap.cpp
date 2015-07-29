@@ -3,8 +3,8 @@
 #include "Common.h"
 #include "Pcap.h"
 
-CxxBeginNameSpace(Router)
 using namespace std;
+CxxBeginNameSpace(Router)
 
 PcapFile::PcapFile(const char *fileName)
 {
