@@ -12,6 +12,7 @@
 #include "AccessPoint.h"
 #include "Option.h"
 #include "PtwLib.h"
+#include "PktDbWrapper.h"
 #include "Cracker.h"
 
 #include "Main.h"
@@ -246,8 +247,7 @@ int main()
     //Crack();
     Cracker cracker;
     cracker.Start();
-
-
+    
     _CrtMemDumpAllObjectsSince(nullptr);
 	return 0;
 }

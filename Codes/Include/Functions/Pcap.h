@@ -3,7 +3,6 @@
 #define _Pcap_h_
 
 CxxBeginNameSpace(Router)
-#define TcpDumpMagic            0xA1B2C3D4
 
 enum LinkType: uint32_t
 {
@@ -12,39 +11,6 @@ enum LinkType: uint32_t
     PrismHeader    = 119,
     RadiotapHeader = 127,
     PpiHeader      = 192
-};
-
-class PcapFile
-{
-public:
-    PcapFile(const char *fileName);
-    size_t GetHeaderSize();
-    size_t GetFileSize();
-
-public:
-    uint32_t magic;
-    uint16_t versionMajor;
-    uint16_t versionMinor;
-    int32_t  reserved1;
-    uint32_t reserved2;
-    uint32_t reserved3;
-    uint32_t linkType;
-
-private:
-    PcapFile() {}
-    size_t fileSize;
-};
-
-class PcapPacketHeader
-{
-public:
-    PcapPacketHeader(const char *fileName, size_t offset);
-    size_t GetSize();
-
-public:
-    struct timeval ts;
-    uint32_t       caplen;/* length of portion present */
-    uint32_t       len;   /* length this packet (off wire) */
 };
 
 enum H802dot11Type: uchar_t

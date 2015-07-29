@@ -13,7 +13,7 @@ public:
     Cracker();
 
     void Start();
-    void ReceivePacket(H802dot11* h802dot11);
+    void ReceivePacket(H802dot11* pkt);
 
 private:
     std::shared_ptr<PktDbWrapper<H802dot11>> wrapper;
