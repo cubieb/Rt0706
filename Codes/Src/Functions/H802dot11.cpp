@@ -415,45 +415,131 @@ void DataFrame::Put(std::ostream& os) const
     H802dot11::Put(os);
 }
 
+template<uchar_t Subtype>
+H802dot11* CreateManagementFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                 uchar_t subtype)
+{
+    /* default, check if this is a AssociationRequest frame. */
+    if (subtype == AssociationRequest)
+        return new AssociationRequestFrame(buf, bufSize);
+
+    return nullptr;
+}
+
+template<>
+H802dot11* CreateManagementFrame<AssociationResponse>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                                     uchar_t subtype)
+{
+    /* default, check if this is a AssociationRequest frame. */
+    if (subtype == AssociationResponse)
+        return nullptr;
+
+    return CreateManagementFrame<AssociationResponse - 1>(buf, bufSize, subtype);
+}
+
+template<>
+H802dot11* CreateManagementFrame<ReassociationRequest>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                                       uchar_t subtype)
+{
+    /* default, check if this is a AssociationRequest frame. */
+    if (subtype == ReassociationRequest)
+        return nullptr;
+
+    return CreateManagementFrame<ReassociationRequest - 1>(buf, bufSize, subtype);
+}
+
+template<>
+H802dot11* CreateManagementFrame<ReassociationResponse>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                                        uchar_t subtype)
+{
+    /* default, check if this is a AssociationRequest frame. */
+    if (subtype == ReassociationResponse)
+        return nullptr;
+
+    return CreateManagementFrame<ReassociationResponse - 1>(buf, bufSize, subtype);
+}
+
+template<>
+H802dot11* CreateManagementFrame<ProbeRequest>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                               uchar_t subtype)
+{
+    /* default, check if this is a AssociationRequest frame. */
+    if (subtype == ProbeRequest)
+        return (new ProbeRequestFrame(buf, bufSize));
+
+    return CreateManagementFrame<ProbeRequest - 1>(buf, bufSize, subtype);
+}
+
+template<>
+H802dot11* CreateManagementFrame<ProbeResponse>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                                uchar_t subtype)
+{
+    /* default, check if this is a AssociationRequest frame. */
+    if (subtype == ProbeResponse)
+        return (new ProbeResponseFrame(buf, bufSize));
+
+    return CreateManagementFrame<ProbeResponse - 1>(buf, bufSize, subtype);
+}
+
+template<>
+H802dot11* CreateManagementFrame<Beacon>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                         uchar_t subtype)
+{
+    /* default, check if this is a AssociationRequest frame. */
+    if (subtype == Beacon)
+        return (new BeaconFrame(buf, bufSize));
+
+    return CreateManagementFrame<Beacon - 1>(buf, bufSize, subtype);
+}
+
+template<uchar_t Type>
+H802dot11* CreateH802dot11Frame(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                uchar_t type, uchar_t subtype)
+{
+    /* default, check if this is a ManagementFrameType frame. */
+    if (type == ManagementFrameType)
+        return CreateManagementFrame<Beacon>(buf, bufSize, subtype);
+
+    return nullptr;
+}
+
+template<>
+H802dot11* CreateH802dot11Frame<ControlFrameType>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                                  uchar_t type, uchar_t subtype)
+{
+    if (type == ControlFrameType)
+        return nullptr;
+
+    return CreateH802dot11Frame<ControlFrameType - 1>(buf, bufSize, type, subtype);
+}
+
+template<>
+H802dot11* CreateH802dot11Frame<DataFrameType>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                               uchar_t type, uchar_t subtype)
+{
+    if (type == DataFrameType)
+        return (new DataFrame(buf, bufSize));
+
+    return CreateH802dot11Frame<DataFrameType - 1>(buf, bufSize, type, subtype);
+}
+
+template<>
+H802dot11* CreateH802dot11Frame<ReservedFrameType>(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
+                                                   uchar_t type, uchar_t subtype)
+{
+    if (type == ReservedFrameType)
+        return nullptr;
+
+    return CreateH802dot11Frame<ReservedFrameType - 1>(buf, bufSize, type, subtype);
+}
+
 H802dot11* CreateFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize)
 {
     uchar_t *ptr = buf.get();
     uchar_t type = (ptr[FrameControl] >> 2) & 0x3;
-    uchar_t subType = (ptr[FrameControl] >> 4) & 0xF;
+    uchar_t subtype = (ptr[FrameControl] >> 4) & 0xF;
 
-    H802dot11 *h802dot11 = nullptr;
-    switch (type)
-    {
-    case ManagementFrameType:
-        switch (subType)
-        {
-        case AssociationRequest:
-            h802dot11 = new AssociationRequestFrame(buf, bufSize);
-            break;
-            
-        case Beacon:
-            h802dot11 = new BeaconFrame(buf, bufSize);
-            break;
-
-        case ProbeResponse:
-            h802dot11 = new ProbeResponseFrame(buf, bufSize);
-            break;
-
-        case ProbeRequest:
-            h802dot11 = new ProbeRequestFrame(buf, bufSize);
-            break;
-        }
-        break;
-
-    case DataFrameType:
-        h802dot11 = new DataFrame(buf, bufSize);
-        break;
-
-    default:
-        break;
-    }
-
-    return h802dot11;
+    return CreateH802dot11Frame<ReservedFrameType>(buf, bufSize, type, subtype);
 }
 
 CxxEndNameSpace

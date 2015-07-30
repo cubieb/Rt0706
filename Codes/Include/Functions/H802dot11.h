@@ -370,7 +370,6 @@ public:
 
 H802dot11* CreateFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
 
-
 class LlcSnap
 {
 public:
