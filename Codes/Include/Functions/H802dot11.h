@@ -4,8 +4,6 @@
 
 CxxBeginNameSpace(Router)
 
-
-
 enum H802dot11Type: uchar_t
 {
     ManagementFrameType = 0x0,
@@ -372,19 +370,6 @@ public:
 
 H802dot11* CreateFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
 
-class WepParameter
-{
-public:
-    static size_t GetSize() 
-    {
-        return 8;
-    }
-
-private:
-    uchar_t initializationVector[3];
-    uchar_t keyIndex;
-    uchar_t integrityCheckValue[4];
-};
 
 class LlcSnap
 {

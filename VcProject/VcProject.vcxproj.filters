@@ -39,9 +39,6 @@
     <ClCompile Include="..\Codes\Src\Functions\Option.cpp">
       <Filter>源文件\Functions</Filter>
     </ClCompile>
-    <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp">
-      <Filter>源文件\Functions</Filter>
-    </ClCompile>
     <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp">
       <Filter>源文件\Functions</Filter>
     </ClCompile>
@@ -63,6 +60,9 @@
     <ClCompile Include="..\Codes\Src\Functions\PktDbWrapper.cpp">
       <Filter>源文件\Functions</Filter>
     </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\H802dot11.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Codes\Main.h">
@@ -75,9 +75,6 @@
       <Filter>头文件\Functions</Filter>
     </ClInclude>
     <ClInclude Include="..\Codes\Include\Functions\Option.h">
-      <Filter>头文件\Functions</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Codes\Include\Functions\Pcap.h">
       <Filter>头文件\Functions</Filter>
     </ClInclude>
     <ClInclude Include="..\Codes\Include\Functions\Rc4.h">
@@ -105,6 +102,9 @@
       <Filter>头文件\Functions</Filter>
     </ClInclude>
     <ClInclude Include="..\Codes\Include\Functions\Cracker.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\H802dot11.h">
       <Filter>头文件\Functions</Filter>
     </ClInclude>
   </ItemGroup>

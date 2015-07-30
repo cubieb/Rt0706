@@ -6,7 +6,7 @@
 #include "AccessPoint.h"
 #include "Option.h"
 #include "PtwLib.h"
-#include "Pcap.h"
+#include "H802dot11.h"
 #include "PktDbWrapper.h"
 #include "Cracker.h"
 
@@ -16,6 +16,64 @@
 
 using namespace std;
 CxxBeginNameSpace(Router)
+
+bool IsArpPacket(DataFrame& dataFrame)
+{
+    int size = dataFrame.GetBufSize() - dataFrame.GetMacHeaderSize() - dataFrame.GetWepParaTotalSize();
+    int arpSize = 8 + 8 + 10*2;
+        
+    /* remove non BROADCAST frames? could be anything, but
+        * chances are good that we got an arp response tho.   
+        */
+
+    if (size == arpSize || size == 54)
+        return true;
+
+    return false;
+}
+
+/* weight is used for guesswork in PTW.  Can be null if known_clear is not for
+ * PTW, but just for getting known clear-text.
+ */
+int known_clear(void *clear, int *clen, int *weight, DataFrame& dataFrame)
+{
+    size_t len;
+    uchar_t *ptr = (uchar_t*)clear;
+    int num = 1;
+
+    if(IsArpPacket(dataFrame)) /*arp*/
+    {
+        len = LlcSnap::GetSize();
+        memcpy(ptr, LlcSnap::GetLlcSnapArp(), len);
+        ptr += len;
+
+        /* arp header */
+        len = 6;
+        memcpy(ptr, "\x00\x01\x08\x00\x06\x04", len);
+        ptr += len;
+
+        /* type of arp */
+        len = 2;
+        if (dataFrame.GetDestMac().Compare((uchar_t*)"\xff\xff\xff\xff\xff\xff") == 0)
+            memcpy(ptr, "\x00\x01", len);
+        else
+            memcpy(ptr, "\x00\x02", len);
+        ptr += len;
+
+        /* src mac */
+        len = 6;
+        memcpy(ptr, dataFrame.GetSrcMac().GetPtr(), len);
+        ptr += len;
+
+        len = ptr - ((uchar_t*)clear);
+        *clen = len;
+        if (weight)
+            weight[0] = 256;
+        return 1;
+    }
+
+    return 1;
+}
 
 Cracker::Cracker(): wrapper(new PcapPktDbWrapper(bind(&Cracker::ReceivePacket, this, placeholders::_1, placeholders::_2)))
 {    

@@ -1,7 +1,7 @@
 #include "SystemInclude.h"
 #include "SystemError.h"
 #include "Common.h"
-#include "Pcap.h"
+#include "H802dot11.h"
 
 using namespace std;
 CxxBeginNameSpace(Router)
