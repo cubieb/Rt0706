@@ -39,6 +39,7 @@ void Rc4TestCase::TestRc4Encryption()
     };
     char plaintext[64]={"this is a test"};
     size_t textLen = strlen(plaintext);
+    cout << endl;
     cout << "plaintext  : " << MemStream<uchar_t>(reinterpret_cast<uchar_t*>(plaintext), textLen) << endl;
     cout << "key        : " << MemStream<uchar_t>(password, textLen) << endl;
 
@@ -61,7 +62,6 @@ void Rc4TestCase::TestRc4Encryption()
     assert(rc4Key.x == rc4.GetX() && rc4Key.y == rc4.GetY());
     assert(memcmp(ciphertext1, ciphertext2, textLen) == 0);
 #endif
-    cout << "Succeed!" << endl;
 
     CPPUNIT_ASSERT( 1 == 1 );
 } 
