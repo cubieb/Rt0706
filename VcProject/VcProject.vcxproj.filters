@@ -107,5 +107,8 @@
     <ClInclude Include="..\Codes\Include\Functions\H802dot11.h">
       <Filter>头文件\Functions</Filter>
     </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\WepPara.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@
 #include "Option.h"
 #include "PtwLib.h"
 #include "H802dot11.h"
+#include "WepPara.h"
 #include "PktDbWrapper.h"
 #include "Cracker.h"
 
@@ -15,11 +16,15 @@
 #endif
 
 using namespace std;
+using std::placeholders::_1;
+using std::placeholders::_2;
+using std::placeholders::_3;
+
 CxxBeginNameSpace(Router)
 
-bool IsArpPacket(DataFrame& dataFrame)
+bool Cracker::IsArpPacket(const DataFrame& dataFrame) const
 {
-    int size = dataFrame.GetBufSize() - dataFrame.GetMacHeaderSize() - dataFrame.GetWepParaTotalSize();
+    int size = dataFrame.GetBufSize() - dataFrame.GetMacHeaderSize() - WepPara::GetTotalSize();
     int arpSize = 8 + 8 + 10*2;
         
     /* remove non BROADCAST frames? could be anything, but
@@ -35,51 +40,44 @@ bool IsArpPacket(DataFrame& dataFrame)
 /* weight is used for guesswork in PTW.  Can be null if known_clear is not for
  * PTW, but just for getting known clear-text.
  */
-int known_clear(void *clear, int *clen, int *weight, DataFrame& dataFrame)
+size_t Cracker::CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const DataFrame& dataFrame) const
 {
-    size_t len;
-    uchar_t *ptr = (uchar_t*)clear;
+    uchar_t *ptr = (uchar_t*)buf;
     int num = 1;
 
     if(IsArpPacket(dataFrame)) /*arp*/
     {
-        len = LlcSnap::GetSize();
-        memcpy(ptr, LlcSnap::GetLlcSnapArp(), len);
-        ptr += len;
+        ptr += MemCopy(ptr, bufSize, LlcSnap::GetLlcSnapArp(), LlcSnap::GetSize());
+        bufSize = bufSize - LlcSnap::GetSize();
 
         /* arp header */
-        len = 6;
-        memcpy(ptr, "\x00\x01\x08\x00\x06\x04", len);
-        ptr += len;
+        ptr += MemCopy(ptr, bufSize, "\x00\x01\x08\x00\x06\x04", 6);
+        bufSize = bufSize - 6;
 
         /* type of arp */
-        len = 2;
         if (dataFrame.GetDestMac().Compare((uchar_t*)"\xff\xff\xff\xff\xff\xff") == 0)
-            memcpy(ptr, "\x00\x01", len);
+            ptr += MemCopy(ptr, bufSize, "\x00\x01", 2);
         else
-            memcpy(ptr, "\x00\x02", len);
-        ptr += len;
+            ptr += MemCopy(ptr, bufSize, "\x00\x02", 2);
+        bufSize = bufSize - 2;
 
         /* src mac */
-        len = 6;
-        memcpy(ptr, dataFrame.GetSrcMac().GetPtr(), len);
-        ptr += len;
-
-        len = ptr - ((uchar_t*)clear);
-        *clen = len;
-        if (weight)
+        ptr += MemCopy(ptr, bufSize, dataFrame.GetSrcMac().GetPtr(), 6);
+  
+        if (weight != nullptr)
             weight[0] = 256;
-        return 1;
+
+        return (ptr - buf);
     }
 
-    return 1;
+    return 0;
 }
 
-Cracker::Cracker(): wrapper(new PcapPktDbWrapper(bind(&Cracker::ReceivePacket, this, placeholders::_1, placeholders::_2)))
+Cracker::Cracker(): wrapper(new PcapPktDbWrapper(bind(&Cracker::ReceivePacket, this, _1, _2)))
 {    
 }
 
-void Cracker::Start()
+void Cracker::Start() const
 {
     wrapper->Start();
 }
@@ -90,14 +88,10 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
     shared_ptr<H802dot11> h802dot11(CreateFrame(buf, bufSize));
 
     /* skip (uninteresting) control frames */
-    if (!h802dot11 || h802dot11->GetTypeBits() == H802dot11Type::ControlFrameType)
+    if (!h802dot11 
+        || h802dot11->GetTypeBits() == H802dot11Type::ControlFrameType
+        || h802dot11->GetBssid().IsBroadcast())
     {
-        return;
-    }
-
-    if (h802dot11->GetBssid().IsBroadcast())
-    {
-        /* probe request or such - skip the packet */
         return;
     }
 
@@ -151,8 +145,8 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
     //line 1424,  aircrack-ng.c, aircrack-ng-1.2-rc2   ???
     /* frameBody[0] frameBody[1] frameBody[2] are WEP Initialization Vector.
         */
-    uchar_t *wepIv = dataFrame.GetWepIvPtr();
-    uchar_t *wepKeyIndex = dataFrame.GetWepKeyIndexPtr();
+    uchar_t *wepIv = dataFrame.GetFrameBody();
+    uchar_t *wepKeyIndex = wepIv + WepPara::GetIvSize();
     if (wepIv[0] != wepIv[1] || wepIv[2] != 0x03)
     {
         ap->SetCrypt(Crypt::Wep);
@@ -168,12 +162,7 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
 
     if (option.DoPtw())
     {
-        uchar_t *body = dataFrame.GetFrameBody();
-        size_t dataSize = dataFrame.GetBufSize() 
-                            - dataFrame.GetMacHeaderSize() 
-                            - dataFrame.GetWepParaTotalSize(); 
-
-        uchar_t clear[2048];
+        uchar_t clear[512] = {0};
         int     weight[16];
 
         /* frameBody[1] bit0 is ToDs, bit1 is FromDs, 
@@ -188,21 +177,27 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
         memset(weight, 0, sizeof(weight));
 		memset(clear, 0, sizeof(clear));
 
-        //int clearSize, i, j, k; 
-        //k = known_clear(clear, &clearSize, weight, dataFrame);
-        //for (j=0; j<k; j++)
-        //{
-        //    for (i = 0; i < clearSize; i++)
-        //        clear[i+(32*j)] ^= body[4+i];
-        //}
+        size_t i, clearSize; 
+        clearSize = CalculateClearStream(clear, sizeof(clear), weight, dataFrame);
+        for (i = 0; i < clearSize; i++)
+        {
+            clear[i] ^= wepIv[WepPara::GetIvKeyIndexSize() + i];
+        }
 
-        //if(k==1)
-        //{
-        //    if (PTW_addsession(nullptr, body, clear, weight, k))
+        if(clearSize != 0)
+        {
+         //   int i,j;
+         //   int il, ir;
+
+         //   i = (iv[0] << 16) | (iv[1] << 8) | (iv[2]);
+	        //il = i/8;
+	        //ir = 1 << (i%8);
+
+        //    if (PTW_addsession(nullptr, frameBody, clear, weight, k))
         //        ap_cur->nb_ivs_clean++;
-        //}
+        }
 
-        //if (PTW_addsession(nullptr, body, clear, weight, k))
+        //if (PTW_addsession(nullptr, frameBody, clear, weight, k))
         //{
         //    ap_cur->nb_ivs_vague++;
         //}

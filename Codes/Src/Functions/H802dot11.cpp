@@ -390,26 +390,6 @@ size_t DataFrame::GetMacHeaderSize() const
     return DataMacHeaderSizeXx;
 }
 
-size_t DataFrame::GetWepParaTotalSize() const
-{
-    return 8;
-}
-
-uchar_t* DataFrame::GetWepIvPtr() const
-{
-    return buf.get() + GetMacHeaderSize();
-}
-
-uchar_t* DataFrame::GetWepKeyIndexPtr() const
-{
-    return buf.get() + GetMacHeaderSize() + 3;
-}
-
-uchar_t* DataFrame::GetWepIcvPtr() const
-{
-    return buf.get() + bufSize - 4;
-}
-
 void DataFrame::Put(std::ostream& os) const
 {
     H802dot11::Put(os);

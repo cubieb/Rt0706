@@ -120,3 +120,10 @@ size_t Write32(uchar_t* buf, uint32_t value)
     }
     return size;
 }
+
+size_t MemCopy(void *dest, size_t destSize, const void *src, size_t count)
+{
+    assert(destSize >= count);
+    memcpy(dest, src, count);
+    return count;
+}

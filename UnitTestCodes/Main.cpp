@@ -10,11 +10,12 @@
 #include "Main.h"
 
 using namespace std;
+using namespace UnitTest;
 
 int main()
 {
-    DebugFlag flag;
-   
+    VerifyRc4Encrypt();
+
     system("Pause");
 	return 0;
 }

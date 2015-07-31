@@ -81,7 +81,6 @@
   <ItemGroup>
     <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Option.cpp" />
-    <ClCompile Include="..\Codes\Src\Functions\Pcap.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Station.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Common.cpp" />
@@ -94,7 +93,6 @@
     <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h" />
     <ClInclude Include="..\Codes\Include\Functions\Eapol.h" />
     <ClInclude Include="..\Codes\Include\Functions\Option.h" />
-    <ClInclude Include="..\Codes\Include\Functions\Pcap.h" />
     <ClInclude Include="..\Codes\Include\Functions\Rc4.h" />
     <ClInclude Include="..\Codes\Include\Functions\Station.h" />
     <ClInclude Include="..\Codes\Include\Public\Common.h" />

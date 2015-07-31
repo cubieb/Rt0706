@@ -358,12 +358,6 @@ public:
     std::string GetEssid() const;
     size_t GetMacHeaderSize() const;
 
-    /* Frame Body Data */
-    size_t GetWepParaTotalSize() const;
-    uchar_t* GetWepIvPtr() const;
-    uchar_t* GetWepKeyIndexPtr() const;
-    uchar_t* GetWepIcvPtr() const;
-
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 };
@@ -376,12 +370,12 @@ public:
     static size_t GetSize() {return 8;}
     static const uchar_t* GetLlcSnapArp() 
     {
-        static const uchar_t* llcSnapArp = (uchar_t*)"\xAA\xAA\x03\x00\x00\x00\x08\x06";
+        static const uchar_t* llcSnapArp = (uchar_t*)"\xaa\xaa\x03\x00\x00\x00\x08\x06";
         return llcSnapArp;
     }
     static const uchar_t* GetLlcSnapIp()
     {
-        static const uchar_t* llcSnapIp = (uchar_t*)"\xAA\xAA\x03\x00\x00\x00\x08\x00";
+        static const uchar_t* llcSnapIp = (uchar_t*)"\xaa\xaa\x03\x00\x00\x00\x08\x00";
         return llcSnapIp;
     }
 };
