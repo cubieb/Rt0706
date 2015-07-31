@@ -4,8 +4,8 @@
 
 #include "AccessPoint.h"
 
-CxxBeginNameSpace(Router)
 using namespace std;
+CxxBeginNameSpace(Router)
 
 Ap::Ap(Mac const& theBssid, Crypt theCrypt) : bssid(theBssid), crypt(theCrypt)
 {

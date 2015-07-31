@@ -25,11 +25,11 @@ Rc4::Rc4(const uchar_t* key, size_t len, uint_t round)
 
     x = 0;
     y = 0;
-    for (uint_t i = 0; i < round; i++)
+    for (uint_t i = 0; i < 256; i++)
     {
         data[i]=i;
     }
-    for (id1=0, id2=0, idk=0; id1 < 256; id1++, idk++)
+    for (id1=0, id2=0, idk=0; id1 < round; id1++, idk++)
     {
         if (idk == len)
             idk = 0;
@@ -41,7 +41,7 @@ Rc4::Rc4(const uchar_t* key, size_t len, uint_t round)
 /* algorithm:
 i = (i + 1) mod 256
 j = (j + S[i]) mod 256
-swap(S[i], s[j])
+swap(S[i], S[j])
 return S[ (S[ i ] + S[j]) mod 256 ]
 
  * reference: void RC4(RC4_KEY*, size_t, const unsigned char, unsigned char);

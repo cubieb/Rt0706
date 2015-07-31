@@ -20,7 +20,6 @@ ostream& operator << (ostream& os, RC4_KEY const& rc4)
 #endif
 
 CPPUNIT_TEST_SUITE_REGISTRATION( Rc4TestCase );
-
 void Rc4TestCase::setUp()
 {}
 
