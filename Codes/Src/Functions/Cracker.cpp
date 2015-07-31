@@ -67,7 +67,7 @@ size_t Cracker::CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, 
         if (weight != nullptr)
             weight[0] = 256;
 
-        return (ptr - buf);
+        return (ptr - buf); 
     }
 
     return 0;

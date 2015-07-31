@@ -28,8 +28,8 @@ using namespace Router;
 int main()
 {
     Cracker cracker;
-    cracker.Start();
-    
+    cracker.Start();        
+
     _CrtMemDumpAllObjectsSince(nullptr);
 	return 0;
 }

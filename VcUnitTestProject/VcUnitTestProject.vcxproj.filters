@@ -35,9 +35,6 @@
     <ClCompile Include="..\UnitTestCodes\Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\UnitTestCodes\UnitTest.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp">
       <Filter>CodesUnderTest\源文件\Functions</Filter>
     </ClCompile>
@@ -59,12 +56,12 @@
     <ClCompile Include="..\Codes\Src\Public\SystemError.cpp">
       <Filter>CodesUnderTest\源文件\Public</Filter>
     </ClCompile>
+    <ClCompile Include="..\UnitTestCodes\Rc4UnitTest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\UnitTestCodes\Main.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\UnitTestCodes\UnitTest.h">
       <Filter>源文件</Filter>
     </ClInclude>
     <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h">
@@ -93,6 +90,9 @@
     </ClInclude>
     <ClInclude Include="..\Codes\Include\Public\SystemError.h">
       <Filter>CodesUnderTest\头文件\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UnitTestCodes\Rc4UnitTest.h">
+      <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
