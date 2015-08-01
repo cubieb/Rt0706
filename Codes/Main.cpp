@@ -29,7 +29,7 @@ int main()
 {
     Cracker cracker;
     cracker.Start();        
-
+    
     _CrtMemDumpAllObjectsSince(nullptr);
 	return 0;
 }

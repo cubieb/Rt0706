@@ -19,22 +19,22 @@ j = 0
 
 * reference: RC4_set_key()
 */
-Rc4::Rc4(const uchar_t* key, size_t len, uint_t round)
+Rc4::Rc4(const uchar_t* key, size_t keySize, uint_t round)
 {
-    size_t id1, id2, idk;
-
-    x = 0;
-    y = 0;
     for (uint_t i = 0; i < 256; i++)
     {
         data[i]=i;
     }
-    for (id1=0, id2=0, idk=0; id1 < round; id1++, idk++)
+
+    for (x=0, y=0; x < round; x++)
     {
-        if (idk == len)
-            idk = 0;
-        id2 = (id2 + data[id1] + key[idk]) & 0xff; /* Algorithm 1, line 4 */
-        swap(data[id1], data[id2]);         /* 5 */
+        y = (y + data[x] + key[x & keySize]) & 0xff; /* Algorithm 1, line 4 */
+        swap(data[x], data[y]);                   /* 5 */
+    }
+    if (round == 256)
+    {
+        x = 0;
+        y = 0;
     }
 }
 
@@ -44,8 +44,8 @@ j = (j + S[i]) mod 256
 swap(S[i], S[j])
 return S[ (S[ i ] + S[j]) mod 256 ]
 
- * reference: void RC4(RC4_KEY*, size_t, const unsigned char, unsigned char);
- */
+* reference: void RC4(RC4_KEY*, size_t, const unsigned char, unsigned char);
+*/
 void Rc4::Encrypt(const uchar_t* plantext, size_t len, uchar_t* ciphertext)
 {
     size_t i;
