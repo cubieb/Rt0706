@@ -28,8 +28,8 @@ bool Cracker::IsArpPacket(const DataFrame& dataFrame) const
     int arpSize = 8 + 8 + 10*2;
         
     /* remove non BROADCAST frames? could be anything, but
-        * chances are good that we got an arp response tho.   
-        */
+     * chances are good that we got an arp response tho.   
+     */
 
     if (size == arpSize || size == 54)
         return true;
@@ -165,8 +165,8 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
 
     /* check the WEP key index. Data Frame, WEP Parameter */
     /* do nothing. */
-        uchar_t clear[512] = {0};
-        int     weight[16];
+    uchar_t clear[512] = {0};
+    int     weight[16];
 
     /* frameBody[1] bit0 is ToDs, bit1 is FromDs, 
         means h802dot11->GetToDsBit() == 1 && h802dot11->GetFromDsBit() == 1
@@ -195,21 +195,17 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
         return;
 
     state->IvBits.set(ivId);
-    uint8_t buffer[WepMaxKeySize];
-    GuessKeyBytes(wepIv, WepPara::GetIvSize(), clear, buffer, WepMaxKeySize);
+    uint8_t result[WepMaxKeySize];
+    GuessKeyBytes(wepIv, WepPara::GetIvSize(), clear, result, WepMaxKeySize);
     for (i = 0; i < WepMaxKeySize; ++i)
     {
-        state->table[i][buffer[i]]++;
+        state->table[i][result[i]]++;
     }
 }
-/*
- */
 
-/* PTW Notation:
-   S : the permutation of Rc4's state;
-   Si: RC4 internal permutation S after the i-th RC4 round. 1  i  n corresponds to the key setup algorithm, 
-       while i > n is the key stream generation algorithm;
-   X : RC4 key stream;
+/*
+Parameter:
+    key: the X of formula 26. "kleins_and_ptw_attacks_on_wep.pdf"
 */
 void Cracker::GuessKeyBytes(uchar_t *iv, size_t ivSize, uchar_t *key, uchar_t *result, size_t resultSize)
 {
