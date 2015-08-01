@@ -88,6 +88,7 @@
     <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Station.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Common.cpp" />
+    <ClCompile Include="..\Codes\Src\Public\Crc32.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Debug.cpp" />
     <ClCompile Include="..\Codes\Src\Public\SystemError.cpp" />
   </ItemGroup>
@@ -103,6 +104,7 @@
     <ClInclude Include="..\Codes\Include\Functions\Station.h" />
     <ClInclude Include="..\Codes\Include\Functions\WepPara.h" />
     <ClInclude Include="..\Codes\Include\Public\Common.h" />
+    <ClInclude Include="..\Codes\Include\Public\Crc32.h" />
     <ClInclude Include="..\Codes\Include\Public\Debug.h" />
     <ClInclude Include="..\Codes\Include\Public\SystemError.h" />
     <ClInclude Include="..\Codes\Include\Public\SystemInclude.h" />
