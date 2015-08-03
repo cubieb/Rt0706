@@ -1,6 +1,7 @@
 #include "SystemInclude.h"
 #include "SystemError.h"
 #include "Common.h"
+#include "PtwLib.h"
 #include "H802dot11.h"
 
 using namespace std;
@@ -390,11 +391,27 @@ size_t DataFrame::GetMacHeaderSize() const
     return DataMacHeaderSizeXx;
 }
 
+/* The frame body consists of the MSDU, or a fragment thereof, and a security header and trailer (if and only if
+   the Protected Frame subfield in the Frame Control field is set to 1). The frame body is null (0 octets in
+   length) in data frames of subtype Null (no data), CF-Ack (no data), CF-Poll (no data), and CF-Ack+CF-Poll
+   (no data), regardless of the encoding of the QoS subfield in the Frame Control field.
+ */
+size_t DataFrame::GetLayer3DataSize() const 
+{
+    size_t size = GetBufSize() - GetMacHeaderSize();
+    if (GetWepBit() == 1)
+    {
+        size = size - WepPara::GetTotalSize();
+    }
+    return size;
+}
+
 void DataFrame::Put(std::ostream& os) const
 {
     H802dot11::Put(os);
 }
 
+/*******************************/
 template<uchar_t Subtype>
 H802dot11* CreateManagementFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
                                  uchar_t subtype)

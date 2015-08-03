@@ -24,12 +24,12 @@ CxxBeginNameSpace(Router)
 
 bool Cracker::IsArpPacket(const DataFrame& dataFrame) const
 {
-    int size = dataFrame.GetBufSize() - dataFrame.GetMacHeaderSize() - WepPara::GetTotalSize();
-    int arpSize = 8 + 8 + 10*2;
+    int size = dataFrame.GetLayer3DataSize();
+    int arpSize = 8 + 8 + 10*2;  //???
         
     /* remove non BROADCAST frames? could be anything, but
-     * chances are good that we got an arp response tho.   
-     */
+        * chances are good that we got an arp response tho.   
+        */
 
     if (size == arpSize || size == 54)
         return true;
@@ -148,15 +148,23 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
     DataFrame& dataFrame = *dynamic_pointer_cast<DataFrame>(h802dot11);
     dbgstrm << dataFrame << endl;
 
-    //line 1424,  aircrack-ng.c, aircrack-ng-1.2-rc2   ???
-    /* frameBody[0] frameBody[1] frameBody[2] are WEP Initialization Vector.
-        */
+    /* line 1424, if( h80211[z] != h80211[z + 1] || h80211[z + 2] != 0x03 ),
+       aircrack-ng.c, aircrack-ng-1.2-rc2
+       p = dataFrame.GetFrameBody()
+       if (p[0] = 0xaa, p[1] = 0xaa, p[2] = 0x03) => logical link control header, so there is not a wep parameter.
+       else there must be a wep parameter flowing the 802.11 mac header.
+     */
     uchar_t *wepIv = dataFrame.GetFrameBody();
     uchar_t *wepKeyIndex = wepIv + WepPara::GetIvSize();
     if (wepIv[0] != wepIv[1] || wepIv[2] != 0x03)
     {
+        /* the first header flowing the 802.11 mac header is not a llc header.  
+           now we check the dataFrame.GetFrameBody() + 3, it could be wep key index or
+           a 
+         */
         ap->SetCrypt(Crypt::Wep);
 
+        /* check the extended IV flag ???? */
         if ((wepKeyIndex[0] & 0x20) != 0)
         {
             ap->SetCrypt(Crypt::Wpa);
@@ -202,6 +210,8 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
         state->table[i][result[i]]++;
     }
 }
+/*
+ */
 
 /*
 Parameter:

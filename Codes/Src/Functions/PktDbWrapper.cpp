@@ -80,12 +80,6 @@ void PcapPktDbWrapper::Start() const
         return;
     }
 
-    if (pcapFile.linkType != LinkType::ieee802dot11)
-    {
-        errstrm << "bad file type." << endl;
-        return;
-    }
-
     size_t offset = pcapFile.GetHeaderSize();
     while (offset < pcapFile.GetFileSize())
     {
@@ -98,7 +92,7 @@ void PcapPktDbWrapper::Start() const
             continue;
         }
 
-        shared_ptr<uchar_t> buf(new uchar_t[pcapPacketHeader.caplen], []( uchar_t *p ) { delete[] p; });
+        shared_ptr<uchar_t> buf(new uchar_t[pcapPacketHeader.caplen], UcharDeleter());
         fstream pcapFile(filename.c_str(), ios_base::in | ios::binary);
         pcapFile.seekp(packetOff);
         pcapFile.read(reinterpret_cast<char*>(buf.get()), pcapPacketHeader.caplen);

@@ -3,7 +3,23 @@
 
 CxxBeginNameSpace(Router)
 
-    
+/*
+1) WEP parameter format, flowing the Mac Header
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     WEP Initialization Vector                 | WEP Key Index |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    *************
+|   LLC DSAP    |    LLC DSAP   |  LLC Control  | SNAP Org Code =                *
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                *
+=                     SNAP Org Code             |  SNAP Type    |    ciphertext  *
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                *
+|                      Data  ... ...(variable)                  |                *
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    *************
+|                            WEP ICV                            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ */
+
 // How long the IV is, 3 is the default value for WEP
 #define WepIvSize       3
 #define WepKeyIndexSize 1

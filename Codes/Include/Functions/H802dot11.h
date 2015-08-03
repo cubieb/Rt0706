@@ -45,42 +45,6 @@ enum H802dot11Subtype: uchar_t
     DataAndCfAckAndCfPoll = 0x7
 };
 
-/*
-802.11 Mac Frame:
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|         Frame Control         |     Duration ID               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Address 1                           =
-++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-=            Address 1          |      Address 2                =
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-=                           Address 2                           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                            Address 3                          =
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-=            Address 3          |         Seq-Ctl               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                            Address 4                          =
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-=            Address 4          |         Frame Body ...        |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-Frame Control:
-    Protocol:  bit 0~1
-    Type    :  bit 2~3
-    Sub Type:  bit 4~7
-    To Ds   :  bit 8
-    From Ds :  bit 9
-    More Tag:  bit 10
-    Retry   :  bit 11 
-    Pwr Mgmt:  bit 12
-    More Data: bit 13
-    Wep     :  bit 14
-    Order   :  bit 15
-*/
-
 enum MacHeaderSize: uint32_t
 {
     AssociationRequestMacHeaderSize = 24,
@@ -112,6 +76,40 @@ enum H802dot11Offset: uint32_t
     RtsFrameMacHeaderSize        = 16,
     CtsFrameMacHeaderSize        = 10
 };
+
+/*
+802.11n Mac Frame:
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Frame Control         |     Duration ID               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Address 1                           =
+++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=            Address 1          |       Address 2 (opt)         =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=                           Address 2 (opt)                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           Address 3 (opt)                     =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=       Address 3 (opt)         |         Seq-Ctl (opt)         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                            Address 4 (opt)                    =
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+=       Address 4 (opt)         |      Qos Control (opt)        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                     Frame Body (opt) ...                      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                              FCS                              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+7.1.3.1 Frame Control field
+  B0   B1 B2 B3 B4   B7 B8 B9   B10  B11   B12 B13  B14
++--------+-----+-------+--+----+----+-----+---+----+---------+
+|Protocol|Type |Subtype|To|From|More|Retry|Pwr|More|Protected|
+|Version |     |       |Ds|Ds  |Frag|     |Mgt|Data|Frame    |
++--------+-----+-------+--+----+----+-----+---+----+---------+
+*/
 
 class H802dot11
 {
@@ -326,25 +324,15 @@ Addressing and DS Bits (BSSID is MAC address of AP WLAN interface):
 Function          To Ds   From Ds   Address 1   Address 2   Address 3   Address 4
                                    (recevier)  (Transmiter)
 ----------------  ------  -------  ----------  -----------  ----------  ----------
-IBSS              0       0        DA          SA           BSSID       not used
-To Ap (infra.)    1       0        BSSID       SA           DA          not used
-From Ap(infra.)   0       1        DA          BSSID        SA          not used
-WDS (bridge)      1       1        RA          TA           DA          SA
+IBSS              0       0        RA=DA       TA=SA        BSSID       not used
+From Ap(infra.)   0       1        RA=DA       TA=BSSID     SA          not used
+To Ap (infra.)    1       0        RA=BSSID    TA=SA        DA          not used
+WDS (bridge)      1       1        RA          TA=TA        DA          SA
 
-1) WEP Data Frame, Frame Body of 802.11 Frame (flowing the Mac Header)
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|     WEP Initialization Vector                 | WEP Key Index |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    *************
-|   LLC DSAP    |    LLC DSAP   |  LLC Control  | SNAP Org Code =                *
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                *
-=                     SNAP Org Code             |  SNAP Type    |    ciphertext  *
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                *
-|                      Data  ... ...(variable)                  |                *
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+    *************
-|                            WEP ICV                            |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+"Note that Address 1 always holds the receiver address of the intended receiver 
+(or, in the case of multicast frames, receivers), and that Address 2 always holds 
+the address of the STA that is transmitting the frame."
+
 */
 class DataFrame: public H802dot11
 {
@@ -357,6 +345,7 @@ public:
     Mac GetBssid() const;
     std::string GetEssid() const;
     size_t GetMacHeaderSize() const;
+    size_t GetLayer3DataSize() const ;
 
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
