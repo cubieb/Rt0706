@@ -1,8 +1,30 @@
 
-#ifndef _Pcap_h_
-#define _Pcap_h_
+#ifndef _H802dot11_h_
+#define _H802dot11_h_
 
 CxxBeginNameSpace(Router)
+
+/* OSI network model
+               . +-+-+-+-+-+-+-+-+-+
+              .  |      Session    |  
+             .   +-+-+-+-+-+-+-+-+-+
+            .    +-+-+-+-+-+-+-+-+-+
+TCP/IP(etc) .    |     Transport   |  
+            .    +-+-+-+-+-+-+-+-+-+
+             .   +-+-+-+-+-+-+-+-+-+
+              .  |     Network     |  
+               . +-+-+-+-+-+-+-+-+-+
+
+                 +-+-+-+-+-+-+-+-+-+
+                 |    Data Link    |  802.2 Logical Link Control(LLC)
+IEEE 802.11a,b,g +-----------------+
+                 |     Layer       |  802.11 MAC Header (a,b,g identical)(If wired networks, this is Data Link Header)
+                 +-+-+-+-+-+-+-+-+-+
+
+                 +-+-+-+-+-+-+-+-+-+
+                 |  Physical Layer |  802.11 PLCP header distinct
+                 +-+-+-+-+-+-+-+-+-+
+*/
 
 enum H802dot11Type: uchar_t
 {
@@ -118,6 +140,7 @@ public:
     virtual ~H802dot11();
 
     size_t GetBufSize() const;
+    /* begin, frame control field. */
     uchar_t GetProtocolBits() const;
     uchar_t GetTypeBits() const;
     uchar_t GetSubtypeBits() const;
@@ -129,7 +152,8 @@ public:
     uchar_t GetPowerMgmtBit() const;
     uchar_t GetMoreDataBit() const;
     uchar_t GetWepBit() const;
-        
+    /* end, frame control field. */
+            
     uchar_t* GetFramePtr() const;
     uchar_t* GetFrameBody() const;
 
