@@ -5,8 +5,8 @@
 
 #include "AccessPoint.h"
 #include "Option.h"
-#include "PtwLib.h"
 #include "H802dot11.h"
+#include "PtwLib.h"
 #include "PktDbWrapper.h"
 #include "Rc4.h"
 #include "Cracker.h"
@@ -22,9 +22,9 @@ using std::placeholders::_3;
 
 CxxBeginNameSpace(Router)
 
-bool Cracker::IsArpPacket(const DataFrame& dataFrame) const
+bool Cracker::IsArpPacket(const H802dot11& dataFrame) const
 {
-    int size = dataFrame.GetLayer3DataSize();
+    int size = CalcLayer3DataSize(dataFrame);
     int arpSize = 8 + 8 + 10*2;  //???
         
     /* remove non BROADCAST frames? could be anything, but
@@ -40,7 +40,7 @@ bool Cracker::IsArpPacket(const DataFrame& dataFrame) const
 /* weight is used for guesswork in PTW.  Can be null if known_clear is not for
  * PTW, but just for getting known clear-text.
  */
-size_t Cracker::CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const DataFrame& dataFrame) const
+size_t Cracker::CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const H802dot11& dataFrame) const
 {
     uchar_t *ptr = (uchar_t*)buf;
     int num = 1;
@@ -55,7 +55,7 @@ size_t Cracker::CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, 
         bufSize = bufSize - 6;
 
         /* type of arp */
-        if (dataFrame.GetDestMac().Compare((uchar_t*)"\xff\xff\xff\xff\xff\xff") == 0)
+        if (dataFrame.GetDstMac().Compare((uchar_t*)"\xff\xff\xff\xff\xff\xff") == 0)
             ptr += MemCopy(ptr, bufSize, "\x00\x01", 2);
         else
             ptr += MemCopy(ptr, bufSize, "\x00\x02", 2);
@@ -94,7 +94,7 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
     shared_ptr<H802dot11> h802dot11(CreateFrame(buf, bufSize));
 
     /* skip (uninteresting) control frames */
-    if (!h802dot11 
+    if (h802dot11  == nullptr
         || h802dot11->GetTypeBits() == H802dot11Type::ControlFrameType
         || h802dot11->GetBssid().IsBroadcast())
     {
@@ -135,18 +135,12 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
         }
     }
 
-    if (h802dot11->GetTypeBits() != H802dot11Type::DataFrameType)
+    if (h802dot11->GetTypeBits() != H802dot11Type::DataFrameType
+        || h802dot11->GetFrameBodySize() <= 16
+        || h802dot11->GetWepBit() == 0)
     {
         return; //line 1410, aircrack-ng.c, aircrack-ng-1.2-rc2
     }        
-
-    if (h802dot11->GetMacHeaderSize() + 16 > h802dot11->GetBufSize())
-    {
-        return;
-    }
-
-    DataFrame& dataFrame = *dynamic_pointer_cast<DataFrame>(h802dot11);
-    dbgstrm << dataFrame << endl;
 
     /* line 1424, if( h80211[z] != h80211[z + 1] || h80211[z + 2] != 0x03 ),
        aircrack-ng.c, aircrack-ng-1.2-rc2
@@ -154,43 +148,21 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
        if (p[0] = 0xaa, p[1] = 0xaa, p[2] = 0x03) => logical link control header, so there is not a wep parameter.
        else there must be a wep parameter flowing the 802.11 mac header.
      */
-    uchar_t *wepIv = dataFrame.GetFrameBody();
-    uchar_t *wepKeyIndex = wepIv + WepPara::GetIvSize();
-    if (wepIv[0] != wepIv[1] || wepIv[2] != 0x03)
-    {
-        /* the first header flowing the 802.11 mac header is not a llc header.  
-           now we check the dataFrame.GetFrameBody() + 3, it could be wep key index or
-           a 
-         */
-        ap->SetCrypt(Crypt::Wep);
-
-        /* check the extended IV flag ???? */
-        if ((wepKeyIndex[0] & 0x20) != 0)
-        {
-            ap->SetCrypt(Crypt::Wpa);
-        }
-    }
+    uchar_t *wepIv = h802dot11->GetFrameBodyPtr();
+    shared_ptr<ProtectedMpduBase> protectedMpdu(CreateProtectedMpdu(*h802dot11));
+    ap->SetCrypt(protectedMpdu->GetAlgorithm());
 
     /* check the WEP key index. Data Frame, WEP Parameter */
     /* do nothing. */
     uchar_t clear[512] = {0};
     int     weight[16];
 
-    /* frameBody[1] bit0 is ToDs, bit1 is FromDs, 
-        means h802dot11->GetToDsBit() == 1 && h802dot11->GetFromDsBit() == 1
-    if((frameBody[1] & 0x03) == 0x03) //30 byte header
-    {
-        body += 6;
-        dataSize -=6;
-    }
-    */
-
     memset(weight, 0, sizeof(weight));
 	memset(clear, 0, sizeof(clear));
 
     size_t i, clearSize; 
-    clearSize = CalculateClearStream(clear, sizeof(clear), weight, dataFrame);
-    uchar_t *snapHeader = wepIv + WepPara::GetIvKeyIndexSize();
+    clearSize = CalculateClearStream(clear, sizeof(clear), weight, *h802dot11);
+    uchar_t *snapHeader = wepIv + protectedMpdu->GetHeaderSize();
     for (i = 0; i < clearSize; i++)
     {
         /* calculate KSA of round i+3 */
@@ -204,7 +176,7 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
 
     state->IvBits.set(ivId);
     uint8_t result[WepMaxKeySize];
-    GuessKeyBytes(wepIv, WepPara::GetIvSize(), clear, result, WepMaxKeySize);
+    GuessKeyBytes(wepIv, protectedMpdu->GetIvSize(), clear, result, WepMaxKeySize);
     for (i = 0; i < WepMaxKeySize; ++i)
     {
         state->table[i][result[i]]++;

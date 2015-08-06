@@ -1,7 +1,6 @@
 #include "SystemInclude.h"
 #include "SystemError.h"
 #include "Common.h"
-#include "PtwLib.h"
 #include "H802dot11.h"
 
 using namespace std;
@@ -14,11 +13,6 @@ H802dot11::H802dot11(const shared_ptr<uchar_t>& theBuf, size_t theBufSize)
 
 H802dot11::~H802dot11() 
 {}
-
-size_t H802dot11::GetBufSize() const
-{
-    return bufSize;
-}
 
 uchar_t H802dot11::GetProtocolBits() const
 {
@@ -90,14 +84,14 @@ uchar_t H802dot11::GetWepBit() const
     return value;
 }
 
-uchar_t* H802dot11::GetFramePtr() const
+uchar_t* H802dot11::GetBufPtr() const
 {
     return buf.get();
 }
 
-uchar_t* H802dot11::GetFrameBody() const
+size_t H802dot11::GetBufSize() const
 {
-    return buf.get() + GetMacHeaderSize();
+    return bufSize;
 }
 
 void H802dot11::Put(std::ostream& os) const
@@ -112,7 +106,7 @@ void H802dot11::Put(std::ostream& os) const
        << ", Wep = " << (uint_t) GetWepBit();
 }
 
-/******************************/
+/**********************class ManagementFrame**********************/
 ManagementFrame::ManagementFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
     : H802dot11(buf, bufSize)
 {
@@ -121,9 +115,14 @@ ManagementFrame::ManagementFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
 ManagementFrame::~ManagementFrame()
 {}
 
-Mac ManagementFrame::GetDestMac() const
+Mac ManagementFrame::GetDstMac() const
 {
     return Mac(buf.get() + Addr1);
+}
+
+Mac ManagementFrame::GetSrcMac() const
+{
+    return Mac(buf.get() + Addr2);
 }
 
 Mac ManagementFrame::GetBssid() const
@@ -135,8 +134,8 @@ string ManagementFrame::GetEssid() const
 {
     uchar_t* ptr;
     string essid;
-    for (ptr = buf.get() + GetMacHeaderSize() + GetFixedParaSize(); 
-         ptr < buf.get() + bufSize; 
+    for (ptr = GetFrameBodyPtr() + GetFixedParaSize(); 
+         ptr < GetFrameBodyPtr() + GetFrameBodySize(); 
          ptr = ptr + 2 + ptr[1])
     {
         if (ptr[0] == 0)
@@ -152,16 +151,26 @@ string ManagementFrame::GetEssid() const
     return essid;
 }
 
+uchar_t* ManagementFrame::GetFrameBodyPtr() const
+{
+    return buf.get() + ManagementHeaderSize;
+}
+
+size_t ManagementFrame::GetFrameBodySize() const
+{
+    return GetBufSize() - ManagementHeaderSize;
+}
+
 void ManagementFrame::Put(ostream& os) const
 {
     H802dot11::Put(os);
 
-    os << "Da = " << GetDestMac()
+    os << "Da = " << GetDstMac()
         << ", Bssid = " << GetBssid()
         << ", Essid = " << GetEssid();
 }
 
-/*******************************/
+/**********************class AssociationRequestFrame**********************/
 AssociationRequestFrame::AssociationRequestFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
     : ManagementFrame(buf, bufSize)
 {}
@@ -169,9 +178,9 @@ AssociationRequestFrame::AssociationRequestFrame(const shared_ptr<uchar_t>& buf,
 AssociationRequestFrame::~AssociationRequestFrame()
 {}
 
-size_t AssociationRequestFrame::GetMacHeaderSize() const
+void AssociationRequestFrame::Put(std::ostream& os) const
 {
-    return AssociationRequestMacHeaderSize;
+    ManagementFrame::Put(os);
 }
 
 size_t AssociationRequestFrame::GetFixedParaSize() const
@@ -179,20 +188,7 @@ size_t AssociationRequestFrame::GetFixedParaSize() const
     return AssociationRequestFixedFieldSize;
 }
 
-uint16_t AssociationRequestFrame::GetListenInterval() const
-{
-    uint16_t value;
-    Read16(buf.get() + GetMacHeaderSize() + ListenInterval, value);
-    return value;
-}
-
-void AssociationRequestFrame::Put(std::ostream& os) const
-{
-    ManagementFrame::Put(os);
-    os << ", ListenInterval = " << (uint_t)GetListenInterval();
-}
-
-/*******************************/
+/**********************class BeaconFrame**********************/
 BeaconFrame::BeaconFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
     : ManagementFrame(buf, bufSize)
 {}
@@ -200,9 +196,9 @@ BeaconFrame::BeaconFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
 BeaconFrame::~BeaconFrame()
 {}
 
-size_t BeaconFrame::GetMacHeaderSize() const
+void BeaconFrame::Put(std::ostream& os) const
 {
-    return BeaconMacHeaderSize;
+    ManagementFrame::Put(os);
 }
 
 size_t BeaconFrame::GetFixedParaSize() const
@@ -210,47 +206,7 @@ size_t BeaconFrame::GetFixedParaSize() const
     return BeaconFixedFieldSize;
 }
 
-uchar_t* BeaconFrame::GetTimeStamp()
-{
-    return buf.get() + GetMacHeaderSize() + TimeStamp;
-}
-
-uint16_t BeaconFrame::GetBeaconInterval() const
-{
-    uint16_t value;
-    Read16(buf.get() + GetMacHeaderSize() + BeaconInterval, value);
-    return value;
-}
-
-uchar_t BeaconFrame::GetEssOfCapabilityBit() const
-{
-    uchar_t* ptr = buf.get() + GetMacHeaderSize();
-    uchar_t value = ptr[CapabilityInfo] & 0x1;
-    return value;
-}
-
-uchar_t BeaconFrame::GetIbssStatusOfCapabilityBit() const
-{
-    uchar_t* ptr = buf.get() + GetMacHeaderSize();
-    uchar_t value = (ptr[CapabilityInfo] >> 1) & 0x1;
-    return value;
-}
-
-uchar_t BeaconFrame::GetPrivacyOfCapabilityBit() const
-{
-    uchar_t* ptr = buf.get() + GetMacHeaderSize();
-    uchar_t value = (ptr[CapabilityInfo] >> 4) & 0x1;
-    return value;
-}
-
-void BeaconFrame::Put(std::ostream& os) const
-{
-    ManagementFrame::Put(os);
-    os << ", ESS bit = " << (uint_t)GetEssOfCapabilityBit()
-        << ", IBSS status bit = " << (uint_t)GetIbssStatusOfCapabilityBit();
-}
-
-/*******************************/
+/**********************class ProbeResponseFrame**********************/
 ProbeResponseFrame::ProbeResponseFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
     : ManagementFrame(buf, bufSize)
 {}
@@ -258,9 +214,10 @@ ProbeResponseFrame::ProbeResponseFrame(const shared_ptr<uchar_t>& buf, size_t bu
 ProbeResponseFrame::~ProbeResponseFrame()
 {}
 
-size_t ProbeResponseFrame::GetMacHeaderSize() const
+
+void ProbeResponseFrame::Put(std::ostream& os) const
 {
-    return ProbeResponseMacHeaderSize;
+    ManagementFrame::Put(os);
 }
 
 size_t ProbeResponseFrame::GetFixedParaSize() const
@@ -268,47 +225,7 @@ size_t ProbeResponseFrame::GetFixedParaSize() const
     return ProbeResponseFixedFieldSize;
 }
 
-uchar_t* ProbeResponseFrame::GetTimeStamp()
-{
-    return buf.get() + GetMacHeaderSize() + BeaconFrame::TimeStamp;
-}
-
-uint16_t ProbeResponseFrame::GetBetweenInterval() const
-{
-    uint16_t value;
-    Read16(buf.get() + GetMacHeaderSize() + BetweenInterval, value);
-    return value;
-}
-
-uchar_t ProbeResponseFrame::GetEssCapabilityBit() const
-{
-    uchar_t* ptr = buf.get() + GetMacHeaderSize();
-    uchar_t value = ptr[CapabilityInfo] & 0x1;
-    return value;
-}
-
-uchar_t ProbeResponseFrame::GetIbssStatusBit() const
-{
-    uchar_t* ptr = buf.get() + GetMacHeaderSize();
-    uchar_t value = (ptr[CapabilityInfo] >> 1) & 0x1;
-    return value;
-}
-
-uchar_t ProbeResponseFrame::GetPrivacyBit() const
-{
-    uchar_t* ptr = buf.get() + GetMacHeaderSize();
-    uchar_t value = (ptr[CapabilityInfo] >> 4) & 0x1;
-    return value;
-}
-
-void ProbeResponseFrame::Put(std::ostream& os) const
-{
-    ManagementFrame::Put(os);
-    os << ", ESS bit = " << (uint_t)GetEssCapabilityBit()
-        << ", IBSS status bit = " << (uint_t)GetIbssStatusBit();
-}
-
-/*******************************/
+/**********************class ProbeRequestFrame**********************/
 ProbeRequestFrame::ProbeRequestFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
     : ManagementFrame(buf, bufSize)
 {}
@@ -316,9 +233,9 @@ ProbeRequestFrame::ProbeRequestFrame(const shared_ptr<uchar_t>& buf, size_t bufS
 ProbeRequestFrame::~ProbeRequestFrame()
 {}
 
-size_t ProbeRequestFrame::GetMacHeaderSize() const
+void ProbeRequestFrame::Put(std::ostream& os) const
 {
-    return ProbeRequestMacHeaderSize;
+    ManagementFrame::Put(os);
 }
 
 size_t ProbeRequestFrame::GetFixedParaSize() const
@@ -326,7 +243,7 @@ size_t ProbeRequestFrame::GetFixedParaSize() const
     return ProbeRequestFixedFieldSize;
 }
 
-/*******************************/
+/**********************class DataFrame**********************/
 DataFrame::DataFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
     : H802dot11(buf, bufSize)
 {}
@@ -334,7 +251,17 @@ DataFrame::DataFrame(const shared_ptr<uchar_t>& buf, size_t bufSize)
 DataFrame::~DataFrame()
 {}
 
-Mac DataFrame::GetDestMac() const
+uchar_t* DataFrame::GetFrameBodyPtr() const
+{
+    return GetBufPtr() + GetMacHeaderSize();
+}
+
+size_t DataFrame::GetFrameBodySize() const
+{
+    return GetBufSize() - GetMacHeaderSize();
+}
+
+Mac DataFrame::GetDstMac() const
 {
     static uchar_t offset[2][2] =
     {
@@ -343,20 +270,6 @@ Mac DataFrame::GetDestMac() const
     };
     uchar_t toDs = GetToDsBit();
     uchar_t fromDs = GetFromDsBit();
-    return Mac(buf.get() + offset[toDs][fromDs]);
-}
-
-Mac DataFrame::GetSrcMac() const
-{
-    static uchar_t offset[2][2] =
-    {
-        {Addr2, Addr3},
-        {Addr2, Addr4}
-    };
-    
-    uchar_t toDs = GetToDsBit();
-    uchar_t fromDs = GetFromDsBit();
-
     return Mac(buf.get() + offset[toDs][fromDs]);
 }
 
@@ -375,6 +288,25 @@ Mac DataFrame::GetBssid() const
     return Mac(buf.get() + offset[toDs][fromDs]);
 }
 
+Mac DataFrame::GetSrcMac() const
+{
+    static uchar_t offset[2][2] =
+    {
+        {Addr2, Addr3},
+        {Addr2, Addr4}
+    };
+    
+    uchar_t toDs = GetToDsBit();
+    uchar_t fromDs = GetFromDsBit();
+
+    return Mac(buf.get() + offset[toDs][fromDs]);
+}
+
+void DataFrame::Put(std::ostream& os) const
+{
+    H802dot11::Put(os);
+}
+
 size_t DataFrame::GetMacHeaderSize() const
 {
     if ((GetSubtypeBits() & 0x08) != 0)
@@ -391,27 +323,7 @@ size_t DataFrame::GetMacHeaderSize() const
     return DataMacHeaderSizeXx;
 }
 
-/* The frame body consists of the MSDU, or a fragment thereof, and a security header and trailer (if and only if
-   the Protected Frame subfield in the Frame Control field is set to 1). The frame body is null (0 octets in
-   length) in data frames of subtype Null (no data), CF-Ack (no data), CF-Poll (no data), and CF-Ack+CF-Poll
-   (no data), regardless of the encoding of the QoS subfield in the Frame Control field.
- */
-size_t DataFrame::GetLayer3DataSize() const 
-{
-    size_t size = GetBufSize() - GetMacHeaderSize();
-    if (GetWepBit() == 1)
-    {
-        size = size - WepPara::GetTotalSize();
-    }
-    return size;
-}
-
-void DataFrame::Put(std::ostream& os) const
-{
-    H802dot11::Put(os);
-}
-
-/*******************************/
+/**********************class CreateManagementFrame**********************/
 template<uchar_t Subtype>
 H802dot11* CreateManagementFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize,
                                  uchar_t subtype)

@@ -85,6 +85,7 @@
     <ClCompile Include="..\Codes\Src\Functions\Option.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\H802dot11.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\PktDbWrapper.cpp" />
+    <ClCompile Include="..\Codes\Src\Functions\PtwLib.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Station.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Common.cpp" />

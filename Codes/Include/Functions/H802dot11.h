@@ -62,17 +62,24 @@ enum H802dot11Subtype: uchar_t
     Data                  = 0x0,
     DataAndCfAck          = 0x1,
     DataAndCfPoll         = 0x2, 
+    DataAndCfAckAndCfPoll = 0x3,
+    Null                  = 0x4,
     CfAck                 = 0x5,
     CfPoll                = 0x6,
-    DataAndCfAckAndCfPoll = 0x7
+    CfAckAndCfPoll        = 0x7,
+    QosData                  = 0x8,
+    QosDataAndCfAck          = 0x9,
+    QosDataAndCfPoll         = 0xa, 
+    QosDataAndCfAckAndCfPoll = 0xb,
+    QosNull                  = 0xc,
+    DataReserved1            = 0xd,
+    QosCfPoll                = 0xe,
+    QosCfAckAndCfPoll        = 0xf
 };
 
 enum MacHeaderSize: uint32_t
 {
-    AssociationRequestMacHeaderSize = 24,
-    BeaconMacHeaderSize = 24,
-    ProbeResponseMacHeaderSize = 24,
-    ProbeRequestMacHeaderSize = 24,
+    ManagementHeaderSize = 24,
     DataMacHeaderSizeXx = 24,
     DataMacHeaderSize11 = 30,
 };
@@ -93,10 +100,6 @@ enum H802dot11Offset: uint32_t
     Addr2        = 10,
     Addr3        = 16,
     Addr4        = 22,
-
-    ManagementFrameMacHeaderSize = 24,
-    RtsFrameMacHeaderSize        = 16,
-    CtsFrameMacHeaderSize        = 10
 };
 
 /*
@@ -138,8 +141,7 @@ class H802dot11
 public:
     H802dot11(const std::shared_ptr<uchar_t>& theBuf, size_t theBufSize);
     virtual ~H802dot11();
-
-    size_t GetBufSize() const;
+        
     /* begin, frame control field. */
     uchar_t GetProtocolBits() const;
     uchar_t GetTypeBits() const;
@@ -154,12 +156,15 @@ public:
     uchar_t GetWepBit() const;
     /* end, frame control field. */
             
-    uchar_t* GetFramePtr() const;
-    uchar_t* GetFrameBody() const;
+    uchar_t* GetBufPtr() const;
+    size_t GetBufSize() const;
 
-    virtual Mac GetDestMac() const = 0;
+    virtual uchar_t* GetFrameBodyPtr() const = 0;
+    virtual size_t GetFrameBodySize() const = 0;
+
+    virtual Mac GetDstMac() const = 0;
+    virtual Mac GetSrcMac() const = 0;
     virtual Mac GetBssid() const = 0;
-    virtual size_t GetMacHeaderSize() const = 0;
     
     /* the following function is provided just for debug */
     virtual void Put(std::ostream& os) const;
@@ -181,33 +186,35 @@ public:
     ManagementFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     virtual ~ManagementFrame();
 
-    Mac GetDestMac() const;
+    Mac GetDstMac() const;
+    Mac GetSrcMac() const;
     Mac GetBssid() const;
     std::string GetEssid() const;
-        
-    size_t GetMacHeaderSize() const = 0;
-    virtual size_t GetFixedParaSize() const = 0;
+
+    virtual uchar_t* GetFrameBodyPtr() const;
+    virtual size_t GetFrameBodySize() const;
 
     virtual void Put(std::ostream& os) const;
+
+protected:
+    /* Management Frame's option start from FrameBodyPtr + FixedParaSize, 
+       MacHeaderSize and FixedParaSize is different for distinct Management Frame.
+     */
+    virtual size_t GetFixedParaSize() const = 0;
+
 };
 
 class AssociationRequestFrame: public ManagementFrame
 {
 public:
-    enum AssociationRequestFrameOffset: uint32_t
-    {
-        CapabilityInfo  = 0,
-        ListenInterval  = 2
-    };
     AssociationRequestFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     ~AssociationRequestFrame();
 
-    size_t GetMacHeaderSize() const;
-    size_t GetFixedParaSize() const;
-    uint16_t GetListenInterval() const;
-
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
+
+protected:
+    size_t GetFixedParaSize() const;
 };
 
 /* 
@@ -257,55 +264,27 @@ Refer to 80211.FrameFormat.pdf, page 38 for details about management frame.
 class BeaconFrame: public ManagementFrame
 {
 public:
-    enum BeaconFrameOffset: uint32_t
-    {
-        TimeStamp       = 0,
-        BeaconInterval  = 8,
-        CapabilityInfo  = 10,    
-    };
     BeaconFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     ~BeaconFrame();
-    
-    size_t GetMacHeaderSize() const;
-
-    /* Frame Body Data */
-    size_t GetFixedParaSize() const;
-    uchar_t* GetTimeStamp();
-    uint16_t GetBeaconInterval() const;
-
-    /* Capability Information */
-    uchar_t GetEssOfCapabilityBit() const;
-    uchar_t GetIbssStatusOfCapabilityBit() const;
-    uchar_t GetPrivacyOfCapabilityBit() const;
 
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
+
+protected:
+    size_t GetFixedParaSize() const;
 };
 
 class ProbeResponseFrame: public ManagementFrame
 {
 public:
-    enum ProbeResponseFrameOffset: uint32_t
-    {
-        TimeStamp       = 0,
-        BetweenInterval  = 8,
-        CapabilityInfo  = 10,    
-    };
-
     ProbeResponseFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     ~ProbeResponseFrame();
 
-    size_t GetMacHeaderSize() const;
-    size_t GetFixedParaSize() const;
-    uchar_t* GetTimeStamp();
-    uint16_t GetBetweenInterval() const;
-
-    uchar_t GetEssCapabilityBit() const;
-    uchar_t GetIbssStatusBit() const;
-    uchar_t GetPrivacyBit() const;
-
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
+
+protected:
+    size_t GetFixedParaSize() const;
 };
 
 class ProbeRequestFrame: public ManagementFrame
@@ -314,7 +293,10 @@ public:
     ProbeRequestFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     ~ProbeRequestFrame();
 
-    size_t GetMacHeaderSize() const;
+    /* the following function is provided just for debug */
+    void Put(std::ostream& os) const;
+
+protected:
     size_t GetFixedParaSize() const;
 };
 
@@ -360,38 +342,26 @@ the address of the STA that is transmitting the frame."
 */
 class DataFrame: public H802dot11
 {
-public: 
+public:
     DataFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     ~DataFrame();
 
-    Mac GetDestMac() const;
-    Mac GetSrcMac() const;
+    uchar_t* GetFrameBodyPtr() const;
+    size_t GetFrameBodySize() const;
+
+    Mac GetDstMac() const;  
+    Mac GetSrcMac() const;  
     Mac GetBssid() const;
     std::string GetEssid() const;
-    size_t GetMacHeaderSize() const;
-    size_t GetLayer3DataSize() const ;
 
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
+
+private:
+    size_t GetMacHeaderSize() const;
 };
 
 H802dot11* CreateFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
-
-class LlcSnap
-{
-public:
-    static size_t GetSize() {return 8;}
-    static const uchar_t* GetLlcSnapArp() 
-    {
-        static const uchar_t* llcSnapArp = (uchar_t*)"\xaa\xaa\x03\x00\x00\x00\x08\x06";
-        return llcSnapArp;
-    }
-    static const uchar_t* GetLlcSnapIp()
-    {
-        static const uchar_t* llcSnapIp = (uchar_t*)"\xaa\xaa\x03\x00\x00\x00\x08\x00";
-        return llcSnapIp;
-    }
-};
 
 CxxEndNameSpace
 #endif

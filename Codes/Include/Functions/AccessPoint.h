@@ -1,6 +1,7 @@
 #ifndef _AccessPoint_h_
 #define _AccessPoint_h_
 
+#include "PtwLib.h"
 #include "Station.h"
 CxxBeginNameSpace(Router)
 
@@ -23,12 +24,6 @@ struct MapIterator: public BaseIterator
     MapIterator(BaseIterator& iter): BaseIterator(iter) {}
     SecondType& operator*() const {return BaseIterator::operator ->()->second;}
     SecondType* operator->() const{return &(BaseIterator::operator ->()->second);}
-};
-
-enum class Crypt
-{
-    Wep = 1,
-    Wpa = 2,
 };
 
 class Ap
