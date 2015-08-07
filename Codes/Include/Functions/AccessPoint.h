@@ -1,7 +1,7 @@
 #ifndef _AccessPoint_h_
 #define _AccessPoint_h_
 
-#include "PtwLib.h"
+#include "Types.h"
 #include "Station.h"
 CxxBeginNameSpace(Router)
 
@@ -32,13 +32,13 @@ public:
     typedef MapIterator<std::map<Mac, St>::iterator> Iterator;
     typedef MapIterator<std::map<Mac, St>::const_iterator> ConstIterator;
 
-    Ap(Mac const&, Crypt);
+    Ap(Mac const&, CryptMode);
     Ap(Ap const&);
     std::string GetEssid() const;
     void SetEssid(const std::string&);
     Mac const& GetBssid() const;
-    Crypt GetCrypt() const;
-    void SetCrypt(Crypt crypt);
+    CryptMode GetCrypt() const;
+    void SetCrypt(CryptMode crypt);
 
     std::pair<Iterator, bool> Insert(St const&);
     Iterator Begin();
@@ -58,7 +58,7 @@ private:
 private:
     Mac bssid;
     std::string essid;
-    Crypt crypt;
+    CryptMode crypt;
     std::map<Mac, St> stList;
 };
 std::ostream& operator << (std::ostream& os, Ap const& ap);

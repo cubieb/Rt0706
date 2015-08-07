@@ -5,7 +5,8 @@
 
 #include "AccessPoint.h"
 #include "Option.h"
-#include "H802dot11.h"
+#include "MacHeader.h"
+#include "SecurityHeader.h"
 #include "PtwLib.h"
 #include "PktDbWrapper.h"
 #include "Rc4.h"
@@ -22,7 +23,7 @@ using std::placeholders::_3;
 
 CxxBeginNameSpace(Router)
 
-bool Cracker::IsArpPacket(const H802dot11& dataFrame) const
+bool Cracker::IsArpPacket(const MacHeader& dataFrame) const
 {
     int size = CalcLayer3DataSize(dataFrame);
     int arpSize = 8 + 8 + 10*2;  //???
@@ -40,7 +41,7 @@ bool Cracker::IsArpPacket(const H802dot11& dataFrame) const
 /* weight is used for guesswork in PTW.  Can be null if known_clear is not for
  * PTW, but just for getting known clear-text.
  */
-size_t Cracker::CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const H802dot11& dataFrame) const
+size_t Cracker::CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const MacHeader& dataFrame) const
 {
     uchar_t *ptr = (uchar_t*)buf;
     int num = 1;
@@ -91,28 +92,28 @@ void Cracker::Start() const
 void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
 {
     Option& option = Option::GetInstance();
-    shared_ptr<H802dot11> h802dot11(CreateFrame(buf, bufSize));
+    shared_ptr<MacHeader> macHeader(CreateMacHeader(buf, bufSize));
 
     /* skip (uninteresting) control frames */
-    if (h802dot11  == nullptr
-        || h802dot11->GetTypeBits() == H802dot11Type::ControlFrameType
-        || h802dot11->GetBssid().IsBroadcast())
+    if (macHeader  == nullptr
+        || macHeader->GetTypeBits() == H802dot11Type::ControlFrameType
+        || macHeader->GetBssid().IsBroadcast())
     {
         return;
     }
 
-    if (option.DoForceBssid() && option.GetBssid() != h802dot11->GetBssid())
+    if (option.DoForceBssid() && option.GetBssid() != macHeader->GetBssid())
     {
         return;
     }
-
+    
     Aps& aps = Aps::GetInstance();        
-    if (aps.Find(h802dot11->GetBssid()) == aps.End())
+    if (aps.Find(macHeader->GetBssid()) == aps.End())
     {
-        Ap ap(h802dot11->GetBssid(), Crypt::Wep);
+        Ap ap(macHeader->GetBssid(), CryptMode::Wep);
         aps.Insert(ap);
     }
-    Aps::Iterator ap = aps.Find(h802dot11->GetBssid());
+    Aps::Iterator ap = aps.Find(macHeader->GetBssid());
 
     //line 1105, aircrack-ng.c, aircrack-ng-1.2-rc2
     if (option.DoPtw())
@@ -120,24 +121,24 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
         //ap_cur->ptw_clean = ... 
         //ap_cur->ptw_vague = ... 
     }
-    St st(h802dot11->GetBssid());
+    St st(macHeader->GetBssid());
     if (ap->Find(st.GetMac()) == ap->End())
     {
         ap->Insert(st);
     }
 
-    if (h802dot11->GetTypeBits() == H802dot11Type::ManagementFrameType)
+    if (macHeader->GetTypeBits() == H802dot11Type::ManagementFrameType)
     {
-        shared_ptr<ManagementFrame> mgmtFrame = dynamic_pointer_cast<ManagementFrame>(h802dot11);
+        shared_ptr<ManagementFrame> mgmtFrame = dynamic_pointer_cast<ManagementFrame>(macHeader);
         if (mgmtFrame->GetEssid().size() != 0 && ap->GetEssid().size() == 0)
         {
             ap->SetEssid(mgmtFrame->GetEssid());
         }
     }
 
-    if (h802dot11->GetTypeBits() != H802dot11Type::DataFrameType
-        || h802dot11->GetFrameBodySize() <= 16
-        || h802dot11->GetWepBit() == 0)
+    if (macHeader->GetTypeBits() != H802dot11Type::DataFrameType
+        || macHeader->GetFrameBodySize() <= 16
+        || macHeader->GetWepBit() == 0)
     {
         return; //line 1410, aircrack-ng.c, aircrack-ng-1.2-rc2
     }        
@@ -148,9 +149,9 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
        if (p[0] = 0xaa, p[1] = 0xaa, p[2] = 0x03) => logical link control header, so there is not a wep parameter.
        else there must be a wep parameter flowing the 802.11 mac header.
      */
-    uchar_t *wepIv = h802dot11->GetFrameBodyPtr();
-    shared_ptr<ProtectedMpduBase> protectedMpdu(CreateProtectedMpdu(*h802dot11));
-    ap->SetCrypt(protectedMpdu->GetAlgorithm());
+    uchar_t *wepIv = macHeader->GetFrameBodyPtr();
+    shared_ptr<SecurityHeader> protectedMpdu(CreateSecurityHeader(*macHeader));
+    ap->SetCrypt(protectedMpdu->GetCryptMode());
 
     /* check the WEP key index. Data Frame, WEP Parameter */
     /* do nothing. */
@@ -161,7 +162,7 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
 	memset(clear, 0, sizeof(clear));
 
     size_t i, clearSize; 
-    clearSize = CalculateClearStream(clear, sizeof(clear), weight, *h802dot11);
+    clearSize = CalculateClearStream(clear, sizeof(clear), weight, *macHeader);
     uchar_t *snapHeader = wepIv + protectedMpdu->GetHeaderSize();
     for (i = 0; i < clearSize; i++)
     {

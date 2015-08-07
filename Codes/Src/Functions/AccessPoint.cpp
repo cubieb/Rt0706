@@ -7,7 +7,7 @@
 using namespace std;
 CxxBeginNameSpace(Router)
 
-Ap::Ap(Mac const& theBssid, Crypt theCrypt) : bssid(theBssid), crypt(theCrypt)
+Ap::Ap(Mac const& theBssid, CryptMode theCrypt) : bssid(theBssid), crypt(theCrypt)
 {
 }
 
@@ -30,12 +30,12 @@ Mac const&Ap:: GetBssid() const
     return bssid;
 }
 
-Crypt Ap::GetCrypt() const
+CryptMode Ap::GetCrypt() const
 {
     return crypt;
 }
 
-void Ap::SetCrypt(Crypt crypt)
+void Ap::SetCrypt(CryptMode crypt)
 {
     this->crypt = crypt;
 }

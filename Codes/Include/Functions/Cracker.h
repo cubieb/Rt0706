@@ -10,8 +10,8 @@ class Cracker
 public:
     Cracker();
 
-    bool IsArpPacket(const H802dot11& dataFrame) const;
-    size_t CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const H802dot11& dataFrame) const;
+    bool IsArpPacket(const MacHeader& dataFrame) const;
+    size_t CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const MacHeader& dataFrame) const;
     void GuessKeyBytes(uchar_t *iv, size_t ivSize, uchar_t *key, uchar_t *result, size_t resultSize);
 
     void Start() const;

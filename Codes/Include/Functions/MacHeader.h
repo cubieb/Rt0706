@@ -72,7 +72,7 @@ enum H802dot11Subtype: uchar_t
     QosDataAndCfPoll         = 0xa, 
     QosDataAndCfAckAndCfPoll = 0xb,
     QosNull                  = 0xc,
-    DataReserved1            = 0xd,
+    DataReserved             = 0xd,
     QosCfPoll                = 0xe,
     QosCfAckAndCfPoll        = 0xf
 };
@@ -136,11 +136,11 @@ enum H802dot11Offset: uint32_t
 +--------+-----+-------+--+----+----+-----+---+----+---------+
 */
 
-class H802dot11
+class MacHeader
 {
 public:
-    H802dot11(const std::shared_ptr<uchar_t>& theBuf, size_t theBufSize);
-    virtual ~H802dot11();
+    MacHeader(const std::shared_ptr<uchar_t>& theBuf, size_t theBufSize);
+    virtual ~MacHeader();
         
     /* begin, frame control field. */
     uchar_t GetProtocolBits() const;
@@ -174,13 +174,13 @@ protected:
     size_t  bufSize;
 };
 
-inline std::ostream& operator << (std::ostream& os, const H802dot11& h802dot11)
+inline std::ostream& operator << (std::ostream& os, const MacHeader& h802dot11)
 {
     h802dot11.Put(os);
     return os;
 }
 
-class ManagementFrame: public H802dot11
+class ManagementFrame: public MacHeader
 {
 public:
     ManagementFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
@@ -210,6 +210,10 @@ public:
     AssociationRequestFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     ~AssociationRequestFrame();
 
+    static MacHeader* CreateInstance(const std::shared_ptr<uchar_t>& buf, size_t bufSize)
+    {
+        return new AssociationRequestFrame(buf, bufSize);
+    }
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 
@@ -267,19 +271,10 @@ public:
     BeaconFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     ~BeaconFrame();
 
-    /* the following function is provided just for debug */
-    void Put(std::ostream& os) const;
-
-protected:
-    size_t GetFixedParaSize() const;
-};
-
-class ProbeResponseFrame: public ManagementFrame
-{
-public:
-    ProbeResponseFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
-    ~ProbeResponseFrame();
-
+    static MacHeader* CreateInstance(const std::shared_ptr<uchar_t>& buf, size_t bufSize)
+    {
+        return new BeaconFrame(buf, bufSize);
+    }
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 
@@ -293,6 +288,27 @@ public:
     ProbeRequestFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
     ~ProbeRequestFrame();
 
+    static MacHeader* CreateInstance(const std::shared_ptr<uchar_t>& buf, size_t bufSize)
+    {
+        return new ProbeRequestFrame(buf, bufSize);
+    }
+    /* the following function is provided just for debug */
+    void Put(std::ostream& os) const;
+
+protected:
+    size_t GetFixedParaSize() const;
+};
+
+class ProbeResponseFrame: public ManagementFrame
+{
+public:
+    ProbeResponseFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+    ~ProbeResponseFrame();
+
+    static MacHeader* CreateInstance(const std::shared_ptr<uchar_t>& buf, size_t bufSize)
+    {
+        return new ProbeResponseFrame(buf, bufSize);
+    }
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 
@@ -340,7 +356,7 @@ WDS (bridge)      1       1        RA          TA=TA        DA          SA
 the address of the STA that is transmitting the frame."
 
 */
-class DataFrame: public H802dot11
+class DataFrame: public MacHeader
 {
 public:
     DataFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
@@ -354,6 +370,10 @@ public:
     Mac GetBssid() const;
     std::string GetEssid() const;
 
+    static MacHeader* CreateInstance(const std::shared_ptr<uchar_t>& buf, size_t bufSize)
+    {
+        return new DataFrame(buf, bufSize);
+    }
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 
@@ -361,7 +381,54 @@ private:
     size_t GetMacHeaderSize() const;
 };
 
-H802dot11* CreateFrame(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+/**********************class CreateMacHeader**********************/
+typedef std::function<MacHeader*(const std::shared_ptr<uchar_t>& buf, size_t bufSize)> MacHeaderCreator;
+
+class MacHeaderFactor
+{
+public:
+    void Register(uchar_t type, uchar_t subtype, MacHeaderCreator creator);
+    MacHeader* Create(uchar_t type, uchar_t subtype, const std::shared_ptr<uchar_t>& buf, size_t bufSize);
+
+    static MacHeaderFactor& GetInstance()
+    {
+        static MacHeaderFactor instance;
+        return instance;
+    }
+
+private:
+    MacHeaderFactor() { /* do nothing */ }
+    std::map<uchar_t, MacHeaderCreator> creatorMap;
+};
+
+class AutoRegisterSuite
+{
+public:
+    AutoRegisterSuite(uchar_t type, uchar_t subtype, MacHeaderCreator creator)
+        : factor(MacHeaderFactor::GetInstance())
+    {
+        factor.Register(type, subtype, creator);
+    }
+
+private:
+    MacHeaderFactor& factor;
+};
+
+/*
+ * From boost documentation:
+ * The following piece of macro magic joins the two 
+ * arguments together, even when one of the arguments is
+ * itself a macro (see 16.3.1 in C++ standard).  The key
+ * is that macro expansion of macro arguments does not
+ * occur in JoinName2 but does in JoinName.
+ */
+#define JoinName(symbol1, symbol2)  JoinName1(symbol1, symbol2)
+#define JoinName1(symbol1, symbol2) JoinName2(symbol1, symbol2)
+#define JoinName2(symbol1, symbol2) symbol1##symbol2
+#define MacHeaderCreatorRgistration(type, subtype, creator)      \
+    static AutoRegisterSuite  JoinName(macHeaderCreator, __LINE__)(type, subtype, creator)
+
+MacHeader* CreateMacHeader(const std::shared_ptr<uchar_t>& buf, size_t bufSize);
 
 CxxEndNameSpace
 #endif
