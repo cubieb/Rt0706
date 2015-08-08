@@ -14,6 +14,7 @@
 #include "SecurityHeader.h"
 #include "PktDbWrapper.h"
 #include "PtwLib.h"
+#include "Task.h"
 #include "Cracker.h"
 
 #include "Main.h"
@@ -24,7 +25,6 @@
 
 using namespace std;
 using namespace Router;
-
 
 int main()
 {

@@ -131,5 +131,8 @@
     <ClInclude Include="..\Codes\Include\Functions\SecurityHeader.h">
       <Filter>头文件\FrameFormat</Filter>
     </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Task.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -22,7 +22,5 @@ private:
     std::shared_ptr<PswState> state;
 };
 
-
-
 CxxEndNameSpace
 #endif
