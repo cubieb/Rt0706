@@ -5,6 +5,7 @@
 
 CxxBeginNameSpace(Router)
 
+class Task;
 class Cracker
 {
 public:
@@ -16,6 +17,7 @@ public:
 
     void Start() const;
     void ReceivePacket(std::shared_ptr<uchar_t> buf, size_t bufSize);
+    void StateChanged(Task&);
 
 private:
     std::shared_ptr<PktDbWrapper> wrapper;

@@ -5,27 +5,6 @@
 #include "Station.h"
 CxxBeginNameSpace(Router)
 
-/* class SecondType,  get element's type by iterator. 
-   refer to <C++ Templates - The Complete Guide>, chapter 15.2.1 
-   "Determining Element Types" for more detail.
- */
-template <typename T>
-class SecondType // primary template
-{
-public:
-    typedef typename std::iterator_traits<T>::value_type::second_type Type;
-};
-
-template<class BaseIterator>
-struct MapIterator: public BaseIterator
-{
-    typedef typename SecondType<BaseIterator>::Type SecondType;
-    MapIterator() {}
-    MapIterator(BaseIterator& iter): BaseIterator(iter) {}
-    SecondType& operator*() const {return BaseIterator::operator ->()->second;}
-    SecondType* operator->() const{return &(BaseIterator::operator ->()->second);}
-};
-
 class Ap
 {
 public:

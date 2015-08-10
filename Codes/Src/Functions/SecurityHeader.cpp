@@ -61,7 +61,7 @@ SecurityHeader* CreateSecurityHeader(const MacHeader& macHeader)
     assert(macHeader.GetWepBit() == 1);
 
     uchar_t* ptr = macHeader.GetFrameBodyPtr();
-    if ((ptr[KeyIndexOffset] >> 5) == 0)
+    if (((ptr[KeyIndexOffset] >> 5) & 0x1) == 0)
     {
         return new WepHeader;
     }

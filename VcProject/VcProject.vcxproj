@@ -89,6 +89,7 @@
     <ClCompile Include="..\Codes\Src\Functions\SecurityHeader.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Station.cpp" />
+    <ClCompile Include="..\Codes\Src\Functions\Task.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Common.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Crc32.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Debug.cpp" />

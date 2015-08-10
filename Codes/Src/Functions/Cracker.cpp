@@ -10,6 +10,7 @@
 #include "PtwLib.h"
 #include "PktDbWrapper.h"
 #include "Rc4.h"
+#include "Task.h"
 #include "Cracker.h"
 
 #ifdef _DEBUG
@@ -102,6 +103,21 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
         return;
     }
 
+    Tasks& tasks = Tasks::GetInstance();
+    Tasks::Iterator iter = tasks.Find(macHeader->GetBssid());
+    if (iter == tasks.End())
+    {
+        shared_ptr<Task> task(new Task(macHeader->GetBssid(), GetMyRouterId(), bind(&Cracker::StateChanged, this, _1)));
+        std::pair<Tasks::Iterator, bool> ret = tasks.Insert(task);
+        if (!ret.second)
+        {
+            return;
+        }
+        iter = ret.first;
+    }
+    (*iter)->Receive(*macHeader);    
+    
+
     if (option.DoForceBssid() && option.GetBssid() != macHeader->GetBssid())
     {
         return;
@@ -182,6 +198,10 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
     {
         state->table[i][result[i]]++;
     }
+}
+
+void Cracker::StateChanged(Task& task)
+{
 }
 /*
  */

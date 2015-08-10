@@ -4,6 +4,11 @@
 
 using namespace std;
 
+Mac::Mac(): mac(new uchar_t[6])
+{
+    memcpy(this->mac.get(), MacZero, 6);
+}
+
 Mac::Mac(const uchar_t* mac): mac(new uchar_t[6])
 {
     memcpy(this->mac.get(), mac, 6);
