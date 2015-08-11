@@ -25,7 +25,7 @@ CxxBeginNameSpace(Router)
 
 Cracker::Cracker()
     : wrapper(new PcapPktDbWrapper(bind(&Cracker::ReceivePacket, this, _1, _2)))
-{    
+{
 }
 
 void Cracker::Start() const

@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "Debug.h"
 #include "SystemError.h" 
+#include "ContainerBase.h"
 
 #include "PktDbWrapper.h"
 
@@ -12,6 +13,7 @@
 using namespace std;
 CxxBeginNameSpace(Router)
 
+/**********************class PcapFile**********************/
 PcapFile::PcapFile(const char *fileName)
 {
     fstream pcapFile(fileName, ios_base::in  | ios::binary);
@@ -53,6 +55,7 @@ size_t PcapFile::GetFileSize()
     return fileSize; 
 }
 
+/**********************class PcapPacketHeader**********************/
 PcapPacketHeader::PcapPacketHeader(const char *fileName, size_t offset)
 {
     fstream pcapFile(fileName, ios_base::in  | ios::binary);
@@ -70,6 +73,11 @@ size_t PcapPacketHeader::GetSize()
 {
     return sizeof(struct timeval) + sizeof(uint32_t) + sizeof(uint32_t);
 }
+
+/**********************class PcapPktDbWrapper**********************/
+PcapPktDbWrapper::PcapPktDbWrapper(Trigger trigger)
+    : PktDbWrapper(trigger), filename("../Packets/aircrack-ng-ptw.cap")
+{}
 
 void PcapPktDbWrapper::Start() const
 {

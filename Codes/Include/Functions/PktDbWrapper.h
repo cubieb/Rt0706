@@ -13,22 +13,24 @@ enum LinkType: uint32_t
     PpiHeader      = 192
 };
 
+/**********************class PktDbWrapper**********************/
 class PktDbWrapper
 {
 public:
     typedef std::function<void(std::shared_ptr<uchar_t>, size_t)> Trigger;
     
     PktDbWrapper(Trigger theTrigger)
-        : filename("../Packets/aircrack-ng-ptw.cap"), trigger(theTrigger)
+        : trigger(theTrigger)
     {}
 
     virtual void Start() const = 0;
 
 protected:
-    std::string filename;
+    
     Trigger trigger;
 };
 
+/**********************class PcapFile**********************/
 class PcapFile
 {
 public:
@@ -50,6 +52,7 @@ private:
     size_t fileSize;
 };
 
+/**********************class PcapPacketHeader**********************/
 class PcapPacketHeader
 {
 public:
@@ -62,15 +65,16 @@ public:
     uint32_t       len;   /* length this packet (off wire) */
 };
 
+/**********************class PcapPktDbWrapper**********************/
 class PcapPktDbWrapper: public PktDbWrapper
 {
 public:
-    PcapPktDbWrapper(Trigger trigger): PktDbWrapper(trigger)
-    {}
-
+    PcapPktDbWrapper(Trigger trigger);
     void Start() const;
 
 private:
+    PcapPktDbWrapper();
+    std::string filename;
 };
 
 CxxEndNameSpace
