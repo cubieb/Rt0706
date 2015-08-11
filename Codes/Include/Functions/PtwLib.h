@@ -20,7 +20,7 @@ struct PswState
     uint_t table[WepMaxKeySize][N];
 };
 
-Mac& GetMyRouterId();
+Mac& GetMyMac();
 
 CxxEndNameSpace
 #endif

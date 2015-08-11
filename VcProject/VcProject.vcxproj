@@ -80,7 +80,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Codes\Main.cpp" />
-    <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Cracker.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Option.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\MacHeader.cpp" />
@@ -96,7 +95,6 @@
     <ClCompile Include="..\Codes\Src\Public\SystemError.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h" />
     <ClInclude Include="..\Codes\Include\Functions\Cracker.h" />
     <ClInclude Include="..\Codes\Include\Functions\Eapol.h" />
     <ClInclude Include="..\Codes\Include\Functions\Option.h" />

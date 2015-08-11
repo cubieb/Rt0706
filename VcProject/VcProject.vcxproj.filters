@@ -39,9 +39,6 @@
     <ClCompile Include="..\Codes\Main.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="..\Codes\Src\Functions\AccessPoint.cpp">
-      <Filter>源文件\Functions</Filter>
-    </ClCompile>
     <ClCompile Include="..\Codes\Src\Functions\Option.cpp">
       <Filter>源文件\Functions</Filter>
     </ClCompile>
@@ -85,9 +82,6 @@
   <ItemGroup>
     <ClInclude Include="..\Codes\Main.h">
       <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Codes\Include\Functions\AccessPoint.h">
-      <Filter>头文件\Functions</Filter>
     </ClInclude>
     <ClInclude Include="..\Codes\Include\Functions\Eapol.h">
       <Filter>头文件\Functions</Filter>

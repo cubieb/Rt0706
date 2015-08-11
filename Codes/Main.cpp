@@ -9,7 +9,6 @@
 
 #include "Rc4.h"
 #include "MacHeader.h"
-#include "AccessPoint.h"
 #include "Option.h"
 #include "SecurityHeader.h"
 #include "PktDbWrapper.h"

@@ -21,7 +21,7 @@ size_t CalcLayer3DataSize(const MacHeader& macHeader)
     return size;
 }
 
-Mac& GetMyRouterId()
+Mac& GetMyMac()
 {
     static Mac mac((uchar_t*)"\x00\x00\x00\x00\x00\x01");
     return mac;

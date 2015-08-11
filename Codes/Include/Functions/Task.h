@@ -8,9 +8,9 @@ enum class TaskStates
 {
     Init, /* init state */
     WepCapturing, 
-    WpaCapturing, 
-    WpaWaitting,  /* only wpa */
-    WpaRunning,   /* only wpa */
+    TkipCapturing, 
+    TkipWaitting,  /* only tkip */
+    TkipRunning,   /* only tkip */
     Successed, 
     Failed
 };
@@ -27,21 +27,25 @@ public:
     Mac GetBssid() const;
     TaskStates GetState() const;
     uint_t GetPriority() const;
+
     void Run();
     void Pause();
     void Receive(const MacHeader& macHeader);
 
-private:
     friend class TaskState;
     friend class TaskInit;
-    void ChangeState(TaskState* theState);
-    TaskState *state;
+    friend class TaskCapturing;
+    friend class TaskWepCapturing;
+    friend class TaskTkipCapturing;
 
 private:
-    Task() {}
-    Mac    bssid;
-    Mac    owner; /* if owner == myMac, this is a local task */
+    Task();
+    void ChangeState(TaskState* theState);
+    Mac  bssid;
     std::string essid;
+    Mac  owner; /* if owner == myMac, this is a local task */    
+    std::shared_ptr<PswState> ptwState;
+    TaskState *state;
     NotifyFunc stateNotify;
 };
 
@@ -77,9 +81,11 @@ class TaskState
 {
 public:
     virtual TaskStates GetState(const Task *task) const = 0;
-    virtual void Run(Task *task) = 0;
-    virtual void Pause(Task *task) = 0;
-    virtual void Receive(Task *task, const MacHeader& macHeader) = 0;
+    virtual void Run(Task *task) { assert(false); }
+    virtual void Pause(Task *task) {  assert(false); }
+
+    void Receive(Task *task, const MacHeader& macHeader);
+    virtual void DoReceive(Task *task, const MacHeader& macHeader) = 0;
 };
 
 /**********************class TaskInit**********************/
@@ -87,9 +93,7 @@ class TaskInit: public TaskState
 {
 public:
     TaskStates GetState(const Task *task) const;
-    void Run(Task *task);
-    void Pause(Task *task);
-    void Receive(Task *task, const MacHeader& macHeader);
+    void DoReceive(Task *task, const MacHeader& macHeader);
 
     static TaskInit& GetInstance()
     {
@@ -98,18 +102,49 @@ public:
     }
 };
 
+/**********************class TaskCapturing**********************/
+class TaskCapturing: public TaskState
+{
+public:
+    TaskStates GetState(const Task *task) const;
+    void DoReceive(Task *task, const MacHeader& macHeader);
+
+    static TaskCapturing& GetInstance()
+    {
+        static TaskCapturing instance;
+        return instance;
+    }
+};
+
 /**********************class TaskWepCapturing**********************/
 class TaskWepCapturing: public TaskState
 {
 public:
-    TaskStates GetState(const Task *task) const;
-    void Run(Task *task);
-    void Pause(Task *task);
-    void Receive(Task *task, const MacHeader& macHeader);
+    TaskWepCapturing();
 
-    static TaskInit& GetInstance()
+    TaskStates GetState(const Task *task) const;
+    void DoReceive(Task *task, const MacHeader& macHeader);
+    bool IsArpPacket(const MacHeader& dataFrame) const;
+    size_t CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const MacHeader& dataFrame) const;
+    void GuessKeyBytes(uchar_t *iv, size_t ivSize, uchar_t *key, uchar_t *result, size_t resultSize);
+
+    static TaskWepCapturing& GetInstance()
     {
-        static TaskInit instance;
+        static TaskWepCapturing instance;
+        return instance;
+    }   
+};
+
+/**********************class TaskTkipCapturing**********************/
+class TaskTkipCapturing: public TaskState
+{
+public:
+    TaskStates GetState(const Task *task) const;
+    void DoReceive(Task *task, const MacHeader& macHeader);
+
+    static TaskTkipCapturing& GetInstance()
+    {
+        static TaskTkipCapturing instance;
         return instance;
     }
 };
