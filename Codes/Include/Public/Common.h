@@ -95,9 +95,11 @@ inline bool operator > (Mac const& left, Mac const& right)
 }
 
 /******************Read from / Write to packet buffer******************/
+size_t Read8(uchar_t* buf, uchar_t&);
 size_t Read16(uchar_t* buf, uint16_t&);
 size_t Read32(uchar_t* buf, uint32_t&);
 
+size_t Write8(uchar_t* buf, uchar_t);
 size_t Write16(uchar_t* buf, uint16_t);
 size_t Write32(uchar_t* buf, uint32_t);
 
@@ -105,7 +107,8 @@ size_t MemCopy(void *dest, size_t destSize, const void *src, size_t count);
 
 /******************shared_ptr<...> deleter******************/
 /*
-CharDeleter, auxiliary class used by shared_ptr<char>.  Example:
+CharDeleter, auxiliary class used by shared_ptr<char>.  
+Example:
 {
     shared_ptr<char> buffer(new char[128], CharDeleter());
 }

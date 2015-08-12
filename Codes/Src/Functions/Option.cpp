@@ -5,6 +5,7 @@
 using namespace std;
 CxxBeginNameSpace(Router)
 
+/**********************class Option**********************/
 Option::Option()
 {
     doPtw = true;

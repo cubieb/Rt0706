@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "Debug.h"
 #include "SystemError.h" 
-#include "ContainerBase.h"
 
 #include "PktDbWrapper.h"
 
@@ -13,100 +12,83 @@
 using namespace std;
 CxxBeginNameSpace(Router)
 
-/**********************class PcapFile**********************/
-PcapFile::PcapFile(const char *fileName)
+/**********************class PcapFileReader**********************/
+PcapFileReader::PcapFileReader(const char *fileName)
+    : fs(fileName, ios_base::in  | ios::binary)
 {
-    fstream pcapFile(fileName, ios_base::in  | ios::binary);
-    
-    if (pcapFile == nullptr)
+    if (fs == nullptr)
     {
         throw system_error(system_error_t::file_not_exists);
     }
-    streampos start = pcapFile.tellg();
-    pcapFile.read(reinterpret_cast<char *>(&magic), sizeof(magic));
-    pcapFile.read(reinterpret_cast<char *>(&versionMajor), sizeof(versionMajor));
-    pcapFile.read(reinterpret_cast<char *>(&versionMinor), sizeof(versionMinor));
-    pcapFile.read(reinterpret_cast<char *>(&reserved1), sizeof(reserved1));
-    pcapFile.read(reinterpret_cast<char *>(&reserved2), sizeof(reserved2));
-    pcapFile.read(reinterpret_cast<char *>(&reserved3), sizeof(reserved3));
-    pcapFile.read(reinterpret_cast<char *>(&linkType), sizeof(linkType));
 
-    if (magic != TcpDumpMagic)
+    PcapFileHeader file;
+    fs.read(reinterpret_cast<char *>(&file.magic), sizeof(file.magic));
+    fs.read(reinterpret_cast<char *>(&file.versionMajor), sizeof(file.versionMajor));
+    fs.read(reinterpret_cast<char *>(&file.versionMinor), sizeof(file.versionMinor));
+    fs.read(reinterpret_cast<char *>(&file.reserved1), sizeof(file.reserved1));
+    fs.read(reinterpret_cast<char *>(&file.reserved2), sizeof(file.reserved2));
+    fs.read(reinterpret_cast<char *>(&file.reserved3), sizeof(file.reserved3));
+    fs.read(reinterpret_cast<char *>(&file.linkType), sizeof(file.linkType));
+
+    if (file.magic != TcpDumpMagic || file.linkType != LinkType::ieee802dot11)
     {
         throw system_error(system_error_t::bad_file_type);
     }
-
-    /* calculate file size */
-    pcapFile.seekg(0, ios::end);      
-    streampos end = pcapFile.tellg();
-    fileSize = static_cast<size_t>(end - start); 
 }
 
-size_t PcapFile::GetHeaderSize()
+size_t PcapFileReader::Read(shared_ptr<uchar_t>& out)
 {
-    /* return sizeof(magic) + sizeof(versionMajor) + sizeof(versionMinor) 
-                     + sizeof(reserved1)+ sizeof(reserved2) + sizeof(reserved3)
-                     + sizeof(linkType); */
-    return 24; 
-}
-
-size_t PcapFile::GetFileSize()
-{
-    return fileSize; 
-}
-
-/**********************class PcapPacketHeader**********************/
-PcapPacketHeader::PcapPacketHeader(const char *fileName, size_t offset)
-{
-    fstream pcapFile(fileName, ios_base::in  | ios::binary);
-    if (pcapFile == nullptr)
+    if (fs.peek() == EOF) 
     {
-        throw system_error(system_error_t::file_not_exists);
+        return 0;
     }
-    pcapFile.seekp(offset);
-    pcapFile.read(reinterpret_cast<char *>(&ts), sizeof(ts));
-    pcapFile.read(reinterpret_cast<char *>(&caplen), sizeof(caplen));
-    pcapFile.read(reinterpret_cast<char *>(&len), sizeof(len));
-}
 
-size_t PcapPacketHeader::GetSize()
-{
-    return sizeof(struct timeval) + sizeof(uint32_t) + sizeof(uint32_t);
+    PcapPacketHeader header;
+    fs.read(reinterpret_cast<char *>(&header.ts), sizeof(header.ts));
+    fs.read(reinterpret_cast<char *>(&header.caplen), sizeof(header.caplen));
+    fs.read(reinterpret_cast<char *>(&header.len), sizeof(header.len));
+
+    uchar_t *ptr = new uchar_t[header.caplen];
+    out.reset(ptr, UcharDeleter());
+    fs.read(reinterpret_cast<char *>(out.get()), header.caplen);
+
+    return header.caplen;
 }
 
 /**********************class PcapPktDbWrapper**********************/
-PcapPktDbWrapper::PcapPktDbWrapper(Trigger trigger)
-    : PktDbWrapper(trigger), filename("../Packets/aircrack-ng-ptw.cap")
-{}
-
-void PcapPktDbWrapper::Start() const
+PcapPktDbWrapper::PcapPktDbWrapper()
 {
-    PcapFile pcapFile(filename.c_str());
-    if (pcapFile.linkType != LinkType::ieee802dot11)
+    AllocProxy();
+
+    PcapFileReader reader("../Packets/aircrack-ng-ptw.cap");
+    shared_ptr<uchar_t> buffer;
+    size_t size;
+    while((size = reader.Read(buffer)) != 0)
     {
-        errstrm << "bad file type." << endl;
-        return;
+        repository.push_back(make_pair(buffer, size));
     }
-
-    size_t offset = pcapFile.GetHeaderSize();
-    while (offset < pcapFile.GetFileSize())
-    {
-        PcapPacketHeader pcapPacketHeader(filename.c_str(), offset);
-        size_t packetOff = offset + pcapPacketHeader.GetSize();
-        offset = offset + pcapPacketHeader.caplen + pcapPacketHeader.GetSize();
-
-        if (pcapPacketHeader.caplen < 24)
-        {
-            continue;
-        }
-
-        shared_ptr<uchar_t> buf(new uchar_t[pcapPacketHeader.caplen], UcharDeleter());
-        fstream pcapFile(filename.c_str(), ios_base::in | ios::binary);
-        pcapFile.seekp(packetOff);
-        pcapFile.read(reinterpret_cast<char*>(buf.get()), pcapPacketHeader.caplen);
-
-        trigger(buf, pcapPacketHeader.caplen);
-    }        
 }
 
+PcapPktDbWrapper::~PcapPktDbWrapper()
+{   
+    FreeProxy();
+}
+
+void PcapPktDbWrapper::AllocProxy()
+{	
+}
+
+void PcapPktDbWrapper::FreeProxy()
+{
+}
+
+PcapPktDbWrapper::iterator PcapPktDbWrapper::begin()
+{
+    return iterator(this, repository.begin());
+}
+
+PcapPktDbWrapper::iterator PcapPktDbWrapper::end()
+{
+    return iterator(this, repository.end());
+}
 CxxEndNameSpace

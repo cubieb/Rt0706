@@ -6,6 +6,7 @@ CxxBeginNameSpace(Router)
 size_t CalcLayer3DataSize(const MacHeader& h802dot11);
 
 #define WepIvTableSize 0xFFFFFF /*  */
+/**********************class PswState**********************/
 struct PswState
 {
     /* Bitset to check for duplicate IVs. Every time we process a new IV, we set a bit. 

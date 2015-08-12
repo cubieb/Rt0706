@@ -27,8 +27,8 @@ using namespace Router;
 
 int main()
 {
-    Cracker cracker;
-    cracker.Start();
+    //Cracker cracker;
+    PcapPktDbWrapper wrapper;
     
     _CrtMemDumpAllObjectsSince(nullptr);
 	return 0;

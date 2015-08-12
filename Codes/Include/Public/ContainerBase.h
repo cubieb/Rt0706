@@ -172,5 +172,104 @@ inline void ContainerBase::OrphanAll()
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////////
+/**********************class ConstIterator**********************/
+template<typename ContainerType>
+class ConstIterator: public IteratorBase    
+{
+public:
+    typedef ContainerType                MyContainer;
+    
+    typedef IteratorBase                 MyBase;
+    typedef ConstIterator<ContainerType> MyIter;
+    typedef std::bidirectional_iterator_tag iterator_category;
+
+    typedef typename MyContainer::NodePtr NodePtr;
+    typedef typename MyContainer::value_type value_type;
+    typedef typename MyContainer::size_type size_type;
+    typedef typename MyContainer::difference_type difference_type;
+    typedef typename MyContainer::const_pointer pointer;
+    typedef typename MyContainer::const_reference reference;
+
+    ConstIterator(): ptr(NodePtr())
+    {}
+
+    ConstIterator(MyContainer *container, NodePtr thePtr)
+        : ptr(thePtr)
+    {}
+
+    reference operator*() const
+    {
+        return (MyContainer::GetValue(this->ptr));
+    }
+
+    MyIter& operator++() const
+    {   // pre-increment
+        ptr = MyContainer::GetNextNodePtr(this->ptr);
+        return (*this);
+    }
+
+    MyIter operator++(int) const
+    {   // post-increment
+        MyIter tmp = *this;
+        ++*this;
+        return (tmp);
+    }
+
+    bool operator==(const MyIter& right) const
+    {   // test for iterator equality
+        return (this->ptr == right.ptr);
+    }
+
+    bool operator!=(const MyIter& right) const
+    {   // test for iterator inequality
+        return (!(*this == right));
+    }
+
+protected:
+    NodePtr ptr;
+};
+
+/**********************class Iterator**********************/
+template<typename ContainerType>
+class Iterator: public ConstIterator<ContainerType> 
+{
+public:
+    typedef ConstIterator<ContainerType> MyBase;
+    typedef Iterator<ContainerType>      MyIter;
+
+    typedef std::bidirectional_iterator_tag iterator_category;
+
+    typedef typename MyContainer::NodePtr NodePtr;
+    typedef typename MyContainer::value_type value_type;
+    typedef typename MyContainer::size_type size_type;
+    typedef typename MyContainer::difference_type difference_type;
+    typedef typename MyContainer::pointer pointer;
+    typedef typename MyContainer::reference reference;
+    
+    Iterator()
+    {}
+
+    Iterator(MyContainer *container, NodePtr ptr)
+        : MyBase(container, ptr)
+    {}
+
+    reference operator*()
+    {
+        return (MyContainer::GetValue(this->ptr));
+    }
+
+    MyIter& operator++()
+    {   // pre-increment
+        ptr = MyContainer::GetNextNodePtr(this->ptr);
+        return (*this);
+    }
+
+    MyIter operator++(int)
+    {   // post-increment
+        MyIter tmp = *this;
+        ++*this;
+        return (tmp);
+    }
+};
+
 #endif /* _ContainerBase_h_ */

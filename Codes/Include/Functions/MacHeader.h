@@ -136,7 +136,7 @@ enum H802dot11Offset: uint32_t
 |Version |     |       |Ds|Ds  |Frag|     |Mgt|Data|Frame    |
 +--------+-----+-------+--+----+----+-----+---+----+---------+
 */
-
+/**********************class MacHeader**********************/
 class MacHeader
 {
 public:
@@ -205,6 +205,7 @@ protected:
 
 };
 
+/**********************class AssociationRequestFrame**********************/
 class AssociationRequestFrame: public ManagementFrame
 {
 public:
@@ -266,6 +267,7 @@ Refer to 80211.FrameFormat.pdf, page 38 for details about management frame.
 =               |           TIM (Opt) ... ... (variable)        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
+/**********************class BeaconFrame**********************/
 class BeaconFrame: public ManagementFrame
 {
 public:
@@ -283,6 +285,7 @@ protected:
     size_t GetFixedParaSize() const;
 };
 
+/**********************class ProbeRequestFrame**********************/
 class ProbeRequestFrame: public ManagementFrame
 {
 public:
@@ -300,6 +303,7 @@ protected:
     size_t GetFixedParaSize() const;
 };
 
+/**********************class ProbeResponseFrame**********************/
 class ProbeResponseFrame: public ManagementFrame
 {
 public:
@@ -355,8 +359,8 @@ WDS (bridge)      1       1        RA          TA=TA        DA          SA
 "Note that Address 1 always holds the receiver address of the intended receiver 
 (or, in the case of multicast frames, receivers), and that Address 2 always holds 
 the address of the STA that is transmitting the frame."
-
 */
+/**********************class DataFrame**********************/
 class DataFrame: public MacHeader
 {
 public:

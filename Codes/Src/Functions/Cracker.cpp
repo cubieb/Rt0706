@@ -23,19 +23,13 @@ using std::placeholders::_3;
 
 CxxBeginNameSpace(Router)
 
+/**********************class Cracker**********************/
 Cracker::Cracker()
-    : wrapper(new PcapPktDbWrapper(bind(&Cracker::ReceivePacket, this, _1, _2)))
 {
 }
 
-void Cracker::Start() const
+void Cracker::Receive(shared_ptr<uchar_t> buf, size_t bufSize)
 {
-    wrapper->Start();
-}
-
-void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
-{
-    Option& option = Option::GetInstance();
     shared_ptr<MacHeader> macHeader(CreateMacHeader(buf, bufSize));
 
     /* skip unknown Mac Frame type */
@@ -48,8 +42,8 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
     Tasks::Iterator iter = tasks.Find(macHeader->GetBssid());
     if (iter == tasks.End())
     {
-        shared_ptr<Task> task(new Task(macHeader->GetBssid(), GetMyMac(), bind(&Cracker::StateChanged, this, _1)));
-        std::pair<Tasks::Iterator, bool> ret = tasks.Insert(task);
+        shared_ptr<Task> task(new Task(macHeader->GetBssid(), GetMyMac(), bind(&Cracker::HandleStateEvent, this, _1)));
+        pair<Tasks::Iterator, bool> ret = tasks.Insert(task);
         if (!ret.second)
         {
             return;
@@ -59,7 +53,7 @@ void Cracker::ReceivePacket(shared_ptr<uchar_t> buf, size_t bufSize)
     (*iter)->Receive(*macHeader);    
 }
 
-void Cracker::StateChanged(Task& task)
+void Cracker::HandleStateEvent(Task& task)
 {
 }
 

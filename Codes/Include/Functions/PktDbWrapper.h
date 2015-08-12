@@ -1,6 +1,8 @@
 #ifndef _PktDbWrapper_h_
 #define _PktDbWrapper_h_
 
+#include "ContainerBase.h"
+
 CxxBeginNameSpace(Router)
 #define TcpDumpMagic            0xA1B2C3D4
 
@@ -13,32 +15,9 @@ enum LinkType: uint32_t
     PpiHeader      = 192
 };
 
-/**********************class PktDbWrapper**********************/
-class PktDbWrapper
-{
-public:
-    typedef std::function<void(std::shared_ptr<uchar_t>, size_t)> Trigger;
-    
-    PktDbWrapper(Trigger theTrigger)
-        : trigger(theTrigger)
-    {}
-
-    virtual void Start() const = 0;
-
-protected:
-    
-    Trigger trigger;
-};
-
 /**********************class PcapFile**********************/
-class PcapFile
+struct PcapFileHeader
 {
-public:
-    PcapFile(const char *fileName);
-    size_t GetHeaderSize();
-    size_t GetFileSize();
-
-public:
     uint32_t magic;
     uint16_t versionMajor;
     uint16_t versionMinor;
@@ -46,35 +25,88 @@ public:
     uint32_t reserved2;
     uint32_t reserved3;
     uint32_t linkType;
-
-private:
-    PcapFile() {}
-    size_t fileSize;
 };
 
 /**********************class PcapPacketHeader**********************/
-class PcapPacketHeader
+struct PcapPacketHeader
 {
-public:
-    PcapPacketHeader(const char *fileName, size_t offset);
-    size_t GetSize();
-
-public:
     struct timeval ts;
     uint32_t       caplen;/* length of portion present */
     uint32_t       len;   /* length this packet (off wire) */
 };
 
+/**********************class PcapFileReader**********************/
+class PcapFileReader
+{
+public:
+    PcapFileReader(const char *fileName);
+    size_t Read(std::shared_ptr<uchar_t>& out);
+
+private:
+    PcapFileReader();
+    std::fstream fs;
+};
+
+/**********************class PktDbWrapper**********************/
+//refer to class ContainerValue
+class PktDbWrapper: public ContainerBase
+{
+public:
+    typedef std::list<std::pair<std::shared_ptr<uchar_t>, size_t>> Repository;
+
+    typedef Repository::iterator NodePtr;
+    typedef Repository::value_type value_type;
+    typedef Repository::size_type size_type;
+    typedef Repository::difference_type difference_type;
+    typedef Repository::pointer pointer;
+    typedef Repository::const_pointer const_pointer;
+    typedef Repository::reference reference;
+    typedef Repository::const_reference const_reference;
+
+    PktDbWrapper()
+    {}
+
+    static NodePtr GetNextNodePtr(NodePtr ptr)
+    {   // return reference to successor pointer in node
+        return ++ptr;
+    }
+
+    static reference GetValue(NodePtr ptr)
+    {
+        return *ptr;
+    }
+
+protected:
+    std::list<std::pair<std::shared_ptr<uchar_t>, size_t>>  repository;
+};
+
 /**********************class PcapPktDbWrapper**********************/
+//ContainerAlloc + Container
 class PcapPktDbWrapper: public PktDbWrapper
 {
 public:
-    PcapPktDbWrapper(Trigger trigger);
-    void Start() const;
+    typedef PcapPktDbWrapper MyType;
+    typedef PktDbWrapper     MyBase;
 
-private:
-    PcapPktDbWrapper();
-    std::string filename;
+    typedef Iterator<PcapPktDbWrapper>::MyIter      iterator;
+    typedef ConstIterator<PcapPktDbWrapper>::MyIter const_iterator;
+
+    typedef MyBase::value_type value_type;
+    typedef MyBase::size_type size_type;
+    typedef MyBase::difference_type difference_type;
+    typedef MyBase::pointer pointer;
+    typedef MyBase::const_pointer const_pointer;
+    typedef MyBase::reference reference;
+    typedef MyBase::const_reference const_reference;
+
+    PcapPktDbWrapper();    
+    ~PcapPktDbWrapper(); // destroy head node
+
+    void AllocProxy();   // construct proxy from _Alnod
+    void FreeProxy();    // destroy proxy
+
+    iterator begin();
+    iterator end();
 };
 
 CxxEndNameSpace

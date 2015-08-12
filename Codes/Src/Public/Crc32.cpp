@@ -78,10 +78,9 @@ uint32_t Crc32::Reflect(uint32_t reflect, const char ch)
 	
 	Note: For Example usage example, see FileCrc().
 */
-
-void Crc32::PartialCrc(uint32_t *crc, const unsigned char *buffer, size_t iDataLength)
+void Crc32::PartialCrc(uint32_t *crc, const uchar_t*buffer, size_t bufferSize)
 {
-	while(iDataLength--)
+	while(bufferSize--)
 	{
 		//If your compiler complains about the following line, try changing
 		//	each occurrence of *crc with ((uint32_t)*crc).
@@ -95,11 +94,11 @@ void Crc32::PartialCrc(uint32_t *crc, const unsigned char *buffer, size_t iDataL
 	Returns the calculated CRC32 (through crc) for the given string.
 */
 
-void Crc32::FullCrc(const unsigned char *buffer, size_t iDataLength, uint32_t *crc)
+void Crc32::FullCrc(const uchar_t *buffer, size_t bufferSize, uint32_t *crc)
 {
     ((uint32_t)*crc) = 0xffffffff; //Initilaize the CRC.
 
-	this->PartialCrc(crc, buffer, iDataLength);
+	this->PartialCrc(crc, buffer, bufferSize);
 
 	((uint32_t)*crc) ^= 0xffffffff; //Finalize the CRC.
 }
@@ -109,11 +108,11 @@ void Crc32::FullCrc(const unsigned char *buffer, size_t iDataLength, uint32_t *c
 	Returns the calculated CRC23 for the given string.
 */
 
-uint32_t Crc32::FullCrc(const unsigned char *buffer, size_t iDataLength)
+uint32_t Crc32::FullCrc(const uchar_t *buffer, size_t bufferSize)
 {
     uint32_t crc = 0xffffffff; //Initilaize the CRC.
 
-	this->PartialCrc(&crc, buffer, iDataLength);
+	this->PartialCrc(&crc, buffer, bufferSize);
 
 	return(crc ^ 0xffffffff); //Finalize the CRC and return.
 }
@@ -131,7 +130,7 @@ bool Crc32::FileCrc(const char *fileName, uint32_t *crc, size_t bufferSize)
     ((uint32_t)*crc) = 0xffffffff; //Initilaize the CRC.
 
 	FILE *fSource = NULL;
-	unsigned char *buf = NULL;
+	uchar_t*buf = NULL;
 	size_t lenRead = 0;
 
 	if((fSource = fopen(fileName, "rb")) == NULL)
@@ -139,7 +138,7 @@ bool Crc32::FileCrc(const char *fileName, uint32_t *crc, size_t bufferSize)
 		return false; //Failed to open file for read access.
 	}
 
-    if(!(buf = (unsigned char *)malloc(bufferSize))) //Allocate memory for file buffering.
+    if(!(buf = (uchar_t*)malloc(bufferSize))) //Allocate memory for file buffering.
 	{
 		fclose(fSource);
 		return false; //Out of memory.
