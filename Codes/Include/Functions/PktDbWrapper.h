@@ -99,7 +99,7 @@ public:
     typedef MyBase::reference reference;
     typedef MyBase::const_reference const_reference;
 
-    PcapPktDbWrapper();    
+    PcapPktDbWrapper(const char *fileName);    
     ~PcapPktDbWrapper(); // destroy head node
 
     void AllocProxy();   // construct proxy from _Alnod

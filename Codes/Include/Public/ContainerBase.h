@@ -59,7 +59,7 @@ struct ContainerBase
         OrphanAll();
     }
 
-    IteratorBase **GetpFirstIter() const
+    IteratorBase **GetpFirst() const
     {   // get address of iterator chain
         return (myProxy == nullptr ? nullptr : &myProxy->myFistIter);
     }
@@ -68,8 +68,7 @@ struct ContainerBase
     void OrphanAll();
 
     // swap all iterators
-    void SwapAll(ContainerBase&)
-    {}
+    void SwapAll(ContainerBase&);
 
     ContainerProxy *myProxy;
 };
@@ -77,12 +76,12 @@ struct ContainerBase
 //stl:  struct _Iterator_base12;
 struct IteratorBase 
 {   // store links to container proxy, next iterator
-    IteratorBase(): myProxy(0), myNextIter(0)
+    IteratorBase(): myProxy(nullptr), myNextIter(nullptr)
     {   // construct orphaned iterator
     }
 
     IteratorBase(const IteratorBase& right)
-        : myProxy(0), myNextIter(0)
+        : myProxy(nullptr), myNextIter(nullptr)
     {   // copy an iterator
         *this = right;
     }
@@ -104,19 +103,21 @@ struct IteratorBase
 
     ~IteratorBase()
     {   // destroy the iterator
+#ifdef _DEBUG
         OrphanMe();
+#endif
     }
 
     void Adopt(const ContainerBase *parent)
     {   // adopt this iterator by parent
-        if (parent == 0)
+        if (parent == nullptr)
         {   // no future parent, just disown current parent
             OrphanMe();
         }
         else
         {   // have a parent, do adoption
             ContainerProxy *parentProxy = parent->myProxy;
-
+#ifdef _DEBUG
             if (myProxy != parentProxy)
             {	// change parentage
                 OrphanMe();
@@ -124,17 +125,20 @@ struct IteratorBase
                 parentProxy->myFistIter = this;
                 myProxy = parentProxy;
             }
+#else  //#ifdef _DEBUG
+            myProxy = parentProxy;
+#endif  //#else  #ifdef _DEBUG
         }
     }
 
     void ClearContainer()
     {   // disown owning container
-        myProxy = 0;
+        myProxy = nullptr;
     }
 
     const ContainerBase *GetContainer() const
     {   // get owning container
-        return (myProxy == 0 ? 0 : myProxy->myContainer);
+        return (myProxy == nullptr ? nullptr : myProxy->myContainer);
     }
 
     IteratorBase **GetNextIter()
@@ -144,6 +148,7 @@ struct IteratorBase
 
     void OrphanMe()
     {   // cut ties with parent
+#ifdef _DEBUG
         if (myProxy != 0)
         {	// adopted, remove self from list
             IteratorBase **next = &myProxy->myFistIter;
@@ -154,6 +159,7 @@ struct IteratorBase
             *next = myNextIter;
             myProxy = 0;
         }
+#endif  //#ifdef _DEBUG
     }
 
     ContainerProxy *myProxy;
@@ -162,6 +168,7 @@ struct IteratorBase
 
 inline void ContainerBase::OrphanAll()
 {
+#ifdef _DEBUG
     if (myProxy != 0)
     {	// proxy allocated, drain it
         for (IteratorBase **next = &myProxy->myFistIter;
@@ -170,7 +177,20 @@ inline void ContainerBase::OrphanAll()
             (*next)->myProxy = 0;
         myProxy->myFistIter = 0;
     }
+#endif  //#ifdef _DEBUG
 }
+
+inline void ContainerBase::SwapAll(ContainerBase& right)
+    {   // swap all iterators
+    ContainerProxy *tmp = myProxy;
+    myProxy = right.myProxy;
+    right.myProxy = tmp;
+
+    if (myProxy != 0)
+        myProxy->myContainer = (ContainerBase*)this;
+    if (right.myProxy != 0)
+        right.myProxy->myContainer = (ContainerBase*)&right;
+    }
 
 /**********************class ConstIterator**********************/
 template<typename ContainerType>
@@ -181,7 +201,7 @@ public:
     
     typedef IteratorBase                 MyBase;
     typedef ConstIterator<ContainerType> MyIter;
-    typedef std::bidirectional_iterator_tag iterator_category;
+    typedef std::forward_iterator_tag iterator_category;
 
     typedef typename MyContainer::NodePtr NodePtr;
     typedef typename MyContainer::value_type value_type;
@@ -190,25 +210,54 @@ public:
     typedef typename MyContainer::const_pointer pointer;
     typedef typename MyContainer::const_reference reference;
 
-    ConstIterator(): ptr(NodePtr())
+    ConstIterator(): MyBase(), ptr(NodePtr())
     {}
 
-    ConstIterator(MyContainer *container, NodePtr thePtr)
+    ConstIterator(const MyContainer *container, NodePtr thePtr)
         : ptr(thePtr)
-    {}
-
-    reference operator*() const
     {
-        return (MyContainer::GetValue(this->ptr));
+        this->Adopt(container);
     }
 
-    MyIter& operator++() const
+    reference operator*() const
+    {   // return designated value
+#ifdef _DEBUG
+        /* if (this->_Getcont() == 0
+                || this->_Ptr == 0
+                || this->_Ptr == ((MyContainer *)this->GetContainer())->_Myhead)
+            {   // report error
+                _DEBUG_ERROR("list iterator not incrementable");
+                _SCL_SECURE_OUT_OF_RANGE;
+            }
+         */
+        assert(this->GetContainer() != nullptr);
+#endif
+        return (MyContainer::GetValue(this->ptr));
+    }
+    
+    pointer operator->() const
+    {   // return pointer to class object
+        return (std::pointer_traits<pointer>::pointer_to(**this));
+    }
+
+    MyIter& operator++()
     {   // pre-increment
+#ifdef _DEBUG
+        /* if (this->_Getcont() == 0
+                || this->_Ptr == 0
+                || this->_Ptr == ((MyContainer *)this->GetContainer())->_Myhead)
+            {   // report error
+                _DEBUG_ERROR("list iterator not incrementable");
+                _SCL_SECURE_OUT_OF_RANGE;
+            }         
+         */
+        assert(this->GetContainer() != nullptr);
+#endif
         ptr = MyContainer::GetNextNodePtr(this->ptr);
         return (*this);
     }
 
-    MyIter operator++(int) const
+    MyIter operator++(int)
     {   // post-increment
         MyIter tmp = *this;
         ++*this;
@@ -217,12 +266,22 @@ public:
 
     bool operator==(const MyIter& right) const
     {   // test for iterator equality
+#ifdef _DEBUG
+        assert(this->GetContainer() != nullptr
+            && this->GetContainer() == right.GetContainer());
+#endif
+
         return (this->ptr == right.ptr);
     }
 
     bool operator!=(const MyIter& right) const
     {   // test for iterator inequality
         return (!(*this == right));
+    }
+
+    NodePtr GetMyNode() const
+    {   // return node pointer
+        return (ptr);
     }
 
 protected:
@@ -253,14 +312,19 @@ public:
         : MyBase(container, ptr)
     {}
 
-    reference operator*()
+    reference operator*() const
     {
-        return (MyContainer::GetValue(this->ptr));
+        return ((reference)**(MyBase *)this);
+    }
+
+    pointer operator->() const
+    {   // return pointer to class object
+        return (std::pointer_traits<pointer>::pointer_to(**this));
     }
 
     MyIter& operator++()
     {   // pre-increment
-        ptr = MyContainer::GetNextNodePtr(this->ptr);
+        ++(*(MyBase *)this);
         return (*this);
     }
 

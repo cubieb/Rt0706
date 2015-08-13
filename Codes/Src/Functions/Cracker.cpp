@@ -28,6 +28,16 @@ Cracker::Cracker()
 {
 }
 
+void Cracker::ReadPcapFile(const char *fileName)
+{
+    PcapPktDbWrapper wrapper(fileName);
+
+    for (auto iter = wrapper.begin(); iter != wrapper.end(); ++iter)
+    {
+        Receive(iter->first, iter->second);
+    }
+}
+
 void Cracker::Receive(shared_ptr<uchar_t> buf, size_t bufSize)
 {
     shared_ptr<MacHeader> macHeader(CreateMacHeader(buf, bufSize));
@@ -42,7 +52,7 @@ void Cracker::Receive(shared_ptr<uchar_t> buf, size_t bufSize)
     Tasks::Iterator iter = tasks.Find(macHeader->GetBssid());
     if (iter == tasks.End())
     {
-        shared_ptr<Task> task(new Task(macHeader->GetBssid(), GetMyMac(), bind(&Cracker::HandleStateEvent, this, _1)));
+        shared_ptr<Task> task(new Task(macHeader->GetBssid(), GetMyMac(), bind(&Cracker::StateHandler, this, _1)));
         pair<Tasks::Iterator, bool> ret = tasks.Insert(task);
         if (!ret.second)
         {
@@ -53,7 +63,7 @@ void Cracker::Receive(shared_ptr<uchar_t> buf, size_t bufSize)
     (*iter)->Receive(*macHeader);    
 }
 
-void Cracker::HandleStateEvent(Task& task)
+void Cracker::StateHandler(Task& task)
 {
 }
 

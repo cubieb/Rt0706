@@ -27,9 +27,9 @@ using namespace Router;
 
 int main()
 {
-    //Cracker cracker;
-    PcapPktDbWrapper wrapper;
-    
+    Cracker cracker;
+    cracker.ReadPcapFile("../Packets/aircrack-ng-ptw.cap");
+
     _CrtMemDumpAllObjectsSince(nullptr);
 	return 0;
 }

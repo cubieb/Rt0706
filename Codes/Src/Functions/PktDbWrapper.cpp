@@ -56,11 +56,11 @@ size_t PcapFileReader::Read(shared_ptr<uchar_t>& out)
 }
 
 /**********************class PcapPktDbWrapper**********************/
-PcapPktDbWrapper::PcapPktDbWrapper()
+PcapPktDbWrapper::PcapPktDbWrapper(const char *fileName)
 {
     AllocProxy();
 
-    PcapFileReader reader("../Packets/aircrack-ng-ptw.cap");
+    PcapFileReader reader(fileName);
     shared_ptr<uchar_t> buffer;
     size_t size;
     while((size = reader.Read(buffer)) != 0)
@@ -75,11 +75,16 @@ PcapPktDbWrapper::~PcapPktDbWrapper()
 }
 
 void PcapPktDbWrapper::AllocProxy()
-{	
+{
+    myProxy = new ContainerProxy;
+    myProxy->myContainer = this;
 }
 
 void PcapPktDbWrapper::FreeProxy()
 {
+    OrphanAll();
+    delete myProxy;
+    myProxy = nullptr;
 }
 
 PcapPktDbWrapper::iterator PcapPktDbWrapper::begin()
