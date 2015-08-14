@@ -53,8 +53,22 @@ class PktDbWrapper: public ContainerBase
 {
 public:
     typedef std::list<std::pair<std::shared_ptr<uchar_t>, size_t>> Repository;
+    class NodePtr
+    {
+    public:
+        NodePtr(): myIter()
+        {}
+        NodePtr(const Repository::iterator& iter): myIter(iter)
+        {}
 
-    typedef Repository::iterator NodePtr;
+        operator void*() const
+        {
+            return myIter._Ptr;
+        }
+
+        Repository::iterator myIter;
+    };
+    //typedef Repository::_Nodeptr NodePtr;
     typedef Repository::value_type value_type;
     typedef Repository::size_type size_type;
     typedef Repository::difference_type difference_type;
@@ -63,21 +77,26 @@ public:
     typedef Repository::reference reference;
     typedef Repository::const_reference const_reference;
 
-    PktDbWrapper()
-    {}
+    PktDbWrapper(){}
 
     static NodePtr GetNextNodePtr(NodePtr ptr)
     {   // return reference to successor pointer in node
-        return ++ptr;
+        ++ptr.myIter;
+        return ptr;
     }
 
     static reference GetValue(NodePtr ptr)
     {
-        return *ptr;
+        return ((reference)*ptr.myIter);
+    }
+
+    NodePtr GetMyHead()
+    {
+        return NodePtr(repository.end());
     }
 
 protected:
-    std::list<std::pair<std::shared_ptr<uchar_t>, size_t>>  repository;
+    Repository  repository;
 };
 
 /**********************class PcapPktDbWrapper**********************/

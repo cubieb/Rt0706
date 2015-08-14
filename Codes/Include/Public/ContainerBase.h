@@ -222,15 +222,13 @@ public:
     reference operator*() const
     {   // return designated value
 #ifdef _DEBUG
-        /* if (this->_Getcont() == 0
-                || this->_Ptr == 0
-                || this->_Ptr == ((MyContainer *)this->GetContainer())->_Myhead)
-            {   // report error
-                _DEBUG_ERROR("list iterator not incrementable");
-                _SCL_SECURE_OUT_OF_RANGE;
-            }
-         */
-        assert(this->GetContainer() != nullptr);
+        if (this->GetContainer() == nullptr
+            || this->ptr == nullptr
+            || this->ptr == ((MyContainer *)this->GetContainer())->GetMyHead())
+        {   // report error
+             //list iterator not incrementable;
+             assert(false);
+        }
 #endif
         return (MyContainer::GetValue(this->ptr));
     }
@@ -243,15 +241,13 @@ public:
     MyIter& operator++()
     {   // pre-increment
 #ifdef _DEBUG
-        /* if (this->_Getcont() == 0
-                || this->_Ptr == 0
-                || this->_Ptr == ((MyContainer *)this->GetContainer())->_Myhead)
-            {   // report error
-                _DEBUG_ERROR("list iterator not incrementable");
-                _SCL_SECURE_OUT_OF_RANGE;
-            }         
-         */
-        assert(this->GetContainer() != nullptr);
+         if (this->GetContainer() == nullptr
+                || this->ptr == nullptr
+                || this->ptr == ((MyContainer *)this->GetContainer())->GetMyHead())
+         {   // report error
+             //list iterator not incrementable;
+             assert(false);
+         }
 #endif
         ptr = MyContainer::GetNextNodePtr(this->ptr);
         return (*this);

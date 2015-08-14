@@ -89,11 +89,11 @@ void PcapPktDbWrapper::FreeProxy()
 
 PcapPktDbWrapper::iterator PcapPktDbWrapper::begin()
 {
-    return iterator(this, repository.begin());
+    return iterator(this, NodePtr(repository.begin()));
 }
 
 PcapPktDbWrapper::iterator PcapPktDbWrapper::end()
 {
-    return iterator(this, repository.end());
+    return iterator(this, NodePtr(repository.end()));
 }
 CxxEndNameSpace
