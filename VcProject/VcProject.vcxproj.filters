@@ -131,8 +131,5 @@
     <ClInclude Include="..\Codes\Include\Functions\Task.h">
       <Filter>头文件\Functions</Filter>
     </ClInclude>
-    <ClInclude Include="..\Codes\Include\Public\ContainerBase.h">
-      <Filter>头文件\Public</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,8 +1,6 @@
 #ifndef _Crack_h_
 #define _Crack_h_
 
-#include "SystemInclude.h"
-
 CxxBeginNameSpace(Router)
 
 class Task;
@@ -17,7 +15,7 @@ public:
     void StateHandler(Task&);
 
 private:
-    std::shared_ptr<PktDbWrapper> wrapper;
+    std::shared_ptr<PcapPktDbWrapper> wrapper;
 };
 
 CxxEndNameSpace

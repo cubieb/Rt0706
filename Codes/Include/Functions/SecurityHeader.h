@@ -47,10 +47,6 @@ E bit:
 #define TkipHeaderSize  8
 #define TkipTailerSize  4
 
-#define WepMaxKeySize   24
-/* 1 byte char can express 256 unsigned chars */
-#define N               256
-
 /**********************class ProcectMpduBase**********************/
 class SecurityHeader
 {
@@ -111,6 +107,8 @@ public:
         return llcSnapIp;
     }
 };
+
+size_t CalcLayer3DataSize(const MacHeader& h802dot11);
 
 CxxEndNameSpace
 #endif

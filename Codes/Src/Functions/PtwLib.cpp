@@ -9,18 +9,6 @@
 using namespace std;
 CxxBeginNameSpace(Router)
 
-size_t CalcLayer3DataSize(const MacHeader& macHeader)
-{
-    assert(macHeader.GetTypeBits() == DataFrameType);
-    size_t size = macHeader.GetFrameBodySize();
-    if (macHeader.GetWepBit() == 1)
-    {
-        shared_ptr<SecurityHeader> mpdu(CreateSecurityHeader(macHeader)); 
-        size = size - mpdu->GetHeaderSize() - mpdu->GetTailerSize();
-    }
-    return size;
-}
-
 Mac& GetMyMac()
 {
     static Mac mac((uchar_t*)"\x00\x00\x00\x00\x00\x01");

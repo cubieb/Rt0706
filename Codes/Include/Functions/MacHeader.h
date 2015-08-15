@@ -216,6 +216,7 @@ public:
     {
         return new AssociationRequestFrame(buf, bufSize);
     }
+
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 

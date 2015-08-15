@@ -1,8 +1,6 @@
 #ifndef _PktDbWrapper_h_
 #define _PktDbWrapper_h_
 
-#include "ContainerBase.h"
-
 CxxBeginNameSpace(Router)
 #define TcpDumpMagic            0xA1B2C3D4
 
@@ -47,85 +45,30 @@ private:
     std::fstream fs;
 };
 
-/**********************class PktDbWrapper**********************/
-//refer to class ContainerValue
-class PktDbWrapper: public ContainerBase
-{
-public:
-    typedef std::list<std::pair<std::shared_ptr<uchar_t>, size_t>> Repository;
-    class NodePtr
-    {
-    public:
-        NodePtr(): myIter()
-        {}
-        NodePtr(const Repository::iterator& iter): myIter(iter)
-        {}
-
-        operator void*() const
-        {
-            return myIter._Ptr;
-        }
-
-        Repository::iterator myIter;
-    };
-    //typedef Repository::_Nodeptr NodePtr;
-    typedef Repository::value_type value_type;
-    typedef Repository::size_type size_type;
-    typedef Repository::difference_type difference_type;
-    typedef Repository::pointer pointer;
-    typedef Repository::const_pointer const_pointer;
-    typedef Repository::reference reference;
-    typedef Repository::const_reference const_reference;
-
-    PktDbWrapper(){}
-
-    static NodePtr GetNextNodePtr(NodePtr ptr)
-    {   // return reference to successor pointer in node
-        ++ptr.myIter;
-        return ptr;
-    }
-
-    static reference GetValue(NodePtr ptr)
-    {
-        return ((reference)*ptr.myIter);
-    }
-
-    NodePtr GetMyHead()
-    {
-        return NodePtr(repository.end());
-    }
-
-protected:
-    Repository  repository;
-};
-
 /**********************class PcapPktDbWrapper**********************/
-//ContainerAlloc + Container
-class PcapPktDbWrapper: public PktDbWrapper
+class PcapPktDbWrapper
 {
 public:
-    typedef PcapPktDbWrapper MyType;
-    typedef PktDbWrapper     MyBase;
+    typedef std::list<std::pair<std::shared_ptr<uchar_t>, size_t>>   MyContainer;
 
-    typedef Iterator<PcapPktDbWrapper>::MyIter      iterator;
-    typedef ConstIterator<PcapPktDbWrapper>::MyIter const_iterator;
-
-    typedef MyBase::value_type value_type;
-    typedef MyBase::size_type size_type;
-    typedef MyBase::difference_type difference_type;
-    typedef MyBase::pointer pointer;
-    typedef MyBase::const_pointer const_pointer;
-    typedef MyBase::reference reference;
-    typedef MyBase::const_reference const_reference;
+    typedef MyContainer::iterator       iterator;
+    typedef MyContainer::const_iterator const_iterator;
 
     PcapPktDbWrapper(const char *fileName);    
-    ~PcapPktDbWrapper(); // destroy head node
+    ~PcapPktDbWrapper();
+    
+    iterator begin()
+    {
+        return packets.begin();
+    }
 
-    void AllocProxy();   // construct proxy from _Alnod
-    void FreeProxy();    // destroy proxy
+    iterator end()
+    {
+        return packets.end();
+    }
 
-    iterator begin();
-    iterator end();
+private:
+    std::list<std::pair<std::shared_ptr<uchar_t>, size_t>> packets;
 };
 
 CxxEndNameSpace

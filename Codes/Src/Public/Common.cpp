@@ -53,12 +53,6 @@ void Mac::Put(ostream& os) const
     os << MemStream<uchar_t>(mac.get(),  6);
 }
 
-ostream& operator << (ostream& os, Mac const& mac)
-{
-    mac.Put(os);
-    return os;
-}
-
 /******************Read from / Write to packet buffer******************/
 size_t Read8(uchar_t* buf, uchar_t& value)
 {

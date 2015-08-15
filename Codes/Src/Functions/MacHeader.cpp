@@ -99,11 +99,12 @@ void MacHeader::Put(std::ostream& os) const
     os << endl << MemStream<uchar_t>(buf.get(), 32) << endl;
 
     os << "version = " << (uint_t) GetProtocolBits()
-       << ", type = " << (uint_t) GetTypeBits()
-       << ", subtype = " << (uint_t) GetSubtypeBits()
-       << ", ToDs = " << (uint_t) GetToDsBit()
-       << ", FromDs = " << (uint_t) GetFromDsBit() 
-       << ", Wep = " << (uint_t) GetWepBit();
+        << ", type = " << (uint_t) GetTypeBits()
+        << ", subtype = " << (uint_t) GetSubtypeBits()
+        << ", ToDs = " << (uint_t) GetToDsBit()
+        << ", FromDs = " << (uint_t) GetFromDsBit() 
+        << ", Wep = " << (uint_t) GetWepBit()
+        << endl;
 }
 
 /**********************class ManagementFrame**********************/
@@ -167,7 +168,8 @@ void ManagementFrame::Put(ostream& os) const
 
     os << "Da = " << GetDstMac()
         << ", Bssid = " << GetBssid()
-        << ", Essid = " << GetEssid();
+        << ", Essid = " << GetEssid() 
+        << endl;
 }
 
 /**********************class AssociationRequestFrame**********************/

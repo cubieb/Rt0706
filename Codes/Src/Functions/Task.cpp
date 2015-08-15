@@ -18,7 +18,7 @@ Task::Task(const Mac& theBssid, const Mac& theOwner, const NotifyFunc& theStateN
     state = &TaskInit::GetInstance();
 }
 
-Mac Task::GetBssid() const
+const Mac& Task::GetBssid() const
 {
     return bssid;
 }
@@ -53,6 +53,12 @@ void Task::ChangeState(TaskState* theState)
     state = theState;
 }
 
+void Task::Put(std::ostream& os) const
+{
+    os << "Owner = " << owner << ", Bssid = " << bssid << ", Essid = " << essid
+        << endl;
+}
+
 /**********************class Tasks**********************/
 std::pair<Tasks::Iterator, bool> Tasks::Insert(const std::shared_ptr<Task>& task)
 {
@@ -61,12 +67,20 @@ std::pair<Tasks::Iterator, bool> Tasks::Insert(const std::shared_ptr<Task>& task
     return make_pair(Iterator(ret.first), ret.second);
 }
 
-Tasks::Iterator Tasks::Begin()
+void Tasks::Put(std::ostream& os) const
+{
+    for (auto iter = tasks.begin(); iter != tasks.end(); ++iter)
+    {
+        os << *(iter->second);
+    }
+}
+
+Tasks::Iterator Tasks::begin()
 {
     return Iterator(tasks.begin());
 }
 
-Tasks::Iterator Tasks::End()    
+Tasks::Iterator Tasks::end()    
 {
     return Iterator(tasks.end());
 }
@@ -128,12 +142,12 @@ void TaskCapturing::DoReceive(Task *task, const MacHeader& macHeader)
         TaskWepCapturing& state = TaskWepCapturing::GetInstance();
         task->ChangeState(&state);
         
-        task->ptwState.reset(new PswState);
+        task->ptwState.reset(new PtwState(WepMaxKeySize));
         size_t i, j;
         for (i = 0; i < WepMaxKeySize; ++i)
         {
             for (j = 0; j < 256; ++j)
-                task->ptwState->table[i][j] = 0;
+                task->ptwState->ptwTable[i][j] = 0;
         }
         state.DoReceive(task, macHeader); 
     }
@@ -197,8 +211,10 @@ void TaskWepCapturing::DoReceive(Task *task, const MacHeader& macHeader)
     GuessKeyBytes(wepIv, protectedMpdu->GetIvSize(), clear, result, WepMaxKeySize);
     for (i = 0; i < WepMaxKeySize; ++i)
     {
-        task->ptwState->table[i][result[i]]++;
+        task->ptwState->ptwTable[i][result[i]]++;
     }
+
+    Check();
 }
 
 bool TaskWepCapturing::IsArpPacket(const MacHeader& dataFrame) const
@@ -277,6 +293,12 @@ void TaskWepCapturing::GuessKeyBytes(uchar_t *iv, size_t ivSize, uchar_t *key, u
         idx = idx - (j3 + sum);
 		result[i] = idx;
 	}
+}
+
+/* PTW_computeKey */
+void TaskWepCapturing::Check()
+{
+
 }
 
 /**********************class TaskTkipCapturing**********************/

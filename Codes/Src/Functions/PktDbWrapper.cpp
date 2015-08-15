@@ -38,19 +38,31 @@ PcapFileReader::PcapFileReader(const char *fileName)
 
 size_t PcapFileReader::Read(shared_ptr<uchar_t>& out)
 {
-    if (fs.peek() == EOF) 
-    {
-        return 0;
-    }
-
     PcapPacketHeader header;
-    fs.read(reinterpret_cast<char *>(&header.ts), sizeof(header.ts));
-    fs.read(reinterpret_cast<char *>(&header.caplen), sizeof(header.caplen));
-    fs.read(reinterpret_cast<char *>(&header.len), sizeof(header.len));
+    while (true)
+    {    
+        if (fs.peek() == EOF) 
+        {
+            return 0;
+        }
+        fs.read(reinterpret_cast<char *>(&header.ts), sizeof(header.ts));
+        fs.read(reinterpret_cast<char *>(&header.caplen), sizeof(header.caplen));
+        fs.read(reinterpret_cast<char *>(&header.len), sizeof(header.len));
 
-    uchar_t *ptr = new uchar_t[header.caplen];
-    out.reset(ptr, UcharDeleter());
-    fs.read(reinterpret_cast<char *>(out.get()), header.caplen);
+        /* 30  : max h802.11 mac header payload
+           4   : wep parameter size
+           1514: max network layer payload, 
+         */
+        if (header.caplen > 1514 + 30 + 4)
+        {
+            continue;
+        }
+
+        uchar_t *ptr = new uchar_t[header.caplen];
+        out.reset(ptr, UcharDeleter());
+        fs.read(reinterpret_cast<char *>(out.get()), header.caplen);
+        break;
+    }
 
     return header.caplen;
 }
@@ -58,42 +70,17 @@ size_t PcapFileReader::Read(shared_ptr<uchar_t>& out)
 /**********************class PcapPktDbWrapper**********************/
 PcapPktDbWrapper::PcapPktDbWrapper(const char *fileName)
 {
-    AllocProxy();
-
     PcapFileReader reader(fileName);
     shared_ptr<uchar_t> buffer;
     size_t size;
     while((size = reader.Read(buffer)) != 0)
     {
-        repository.push_back(make_pair(buffer, size));
+        packets.push_back(make_pair(buffer, size));
     }
 }
 
 PcapPktDbWrapper::~PcapPktDbWrapper()
 {   
-    FreeProxy();
 }
 
-void PcapPktDbWrapper::AllocProxy()
-{
-    myProxy = new ContainerProxy;
-    myProxy->myContainer = this;
-}
-
-void PcapPktDbWrapper::FreeProxy()
-{
-    OrphanAll();
-    delete myProxy;
-    myProxy = nullptr;
-}
-
-PcapPktDbWrapper::iterator PcapPktDbWrapper::begin()
-{
-    return iterator(this, NodePtr(repository.begin()));
-}
-
-PcapPktDbWrapper::iterator PcapPktDbWrapper::end()
-{
-    return iterator(this, NodePtr(repository.end()));
-}
 CxxEndNameSpace

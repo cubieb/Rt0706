@@ -36,6 +36,9 @@ void Cracker::ReadPcapFile(const char *fileName)
     {
         Receive(iter->first, iter->second);
     }
+
+    Tasks& tasks = Tasks::GetInstance();
+    cout << tasks;
 }
 
 void Cracker::Receive(shared_ptr<uchar_t> buf, size_t bufSize)
@@ -50,7 +53,7 @@ void Cracker::Receive(shared_ptr<uchar_t> buf, size_t bufSize)
 
     Tasks& tasks = Tasks::GetInstance();
     Tasks::Iterator iter = tasks.Find(macHeader->GetBssid());
-    if (iter == tasks.End())
+    if (iter == tasks.end())
     {
         shared_ptr<Task> task(new Task(macHeader->GetBssid(), GetMyMac(), bind(&Cracker::StateHandler, this, _1)));
         pair<Tasks::Iterator, bool> ret = tasks.Insert(task);
