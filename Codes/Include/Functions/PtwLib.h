@@ -5,10 +5,6 @@ CxxBeginNameSpace(Router)
 
 /* 1 byte char can express 256 unsigned chars */
 #define N               256
-#define WepMaxKeySize   24
-
-/* wep iv fields is 3 bytes, so the table size is 2**24 */
-#define WepIvTableSize 0xFFFFFF 
 
 // The table with votes for the keybytesums
 class PtwTable
@@ -34,22 +30,30 @@ private:
     std::shared_ptr<Entry> entry;
 };
 
-/**********************class PtwState**********************/
-class PtwState
+/**********************class PtwValidateChar**********************/
+class PtwValidateChar
 {
 public:
-    PtwState(size_t keySize): ptwTable(keySize)
-    {}
-    /* Bitset to check for duplicate IVs. Every time we process a new IV, we set a bit. 
-       We do not process the same IV for more than 1 time. 
-     */
-    std::bitset<WepIvTableSize> IvBits;
+    static PtwValidateChar& GetInstance()
+    {
+        static PtwValidateChar instance;
+        return instance;
+    }
 
-    /* How many packets(which's IV is unique) have been collected */
-    uint_t pktNumber;
+    bool operator[](uchar_t ch)
+    {
+        return validateChar[ch];
+    }
 
-    // The table with votes for the keybytesums
-    PtwTable ptwTable;
+private:
+    PtwValidateChar()
+    {
+        for (size_t i = 0; i < N; ++i)
+        {
+            validateChar[i] = true;
+        }
+    }
+    bool validateChar[N];
 };
 
 Mac& GetMyMac();

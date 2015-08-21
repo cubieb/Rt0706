@@ -47,25 +47,28 @@ E bit:
 #define TkipHeaderSize  8
 #define TkipTailerSize  4
 
-/**********************class ProcectMpduBase**********************/
-class SecurityHeader
+/**********************class MacPdu**********************/
+// MPDU: (MAC) protocol data unit
+class MacPdu
 {
 public:
-    SecurityHeader() {}
-    virtual ~SecurityHeader() {}
+    MacPdu() {}
+    virtual ~MacPdu() {}
 
     virtual size_t GetIvSize() const = 0;
     virtual size_t GetHeaderSize() const = 0;
     virtual size_t GetTailerSize() const = 0;
     virtual CryptMode GetCryptMode() const = 0;
+
+    size_t GetLayer3DataSize(const MacHeader& macHeader) const;
 };
 
-/**********************class WepHeader**********************/
-class WepHeader: public SecurityHeader
+/**********************class WepMacPdu**********************/
+class WepMacPdu: public MacPdu
 {
 public:
-    WepHeader() {}
-    ~WepHeader() {}
+    WepMacPdu() {}
+    ~WepMacPdu() {}
 
     size_t GetIvSize() const;
     size_t GetHeaderSize() const;
@@ -73,12 +76,12 @@ public:
     CryptMode GetCryptMode() const;
 };
 
-/**********************class TkipHeader**********************/
-class TkipHeader: public SecurityHeader
+/**********************class TkipMacPdu**********************/
+class TkipMacPdu: public MacPdu
 {
 public:
-    TkipHeader()  {}
-    ~TkipHeader() {}
+    TkipMacPdu()  {}
+    ~TkipMacPdu() {}
 
     size_t GetIvSize() const;
     size_t GetHeaderSize() const;
@@ -87,9 +90,9 @@ public:
 };
 
 /**********************Helper Function**********************/
-#define KeyIndexOffset  3
+
 class MacHeader;
-SecurityHeader* CreateSecurityHeader(const MacHeader& macHeader);
+MacPdu* CreateMacPduHeader(const MacHeader& macHeader);
 
 /**********************class LlcSnap**********************/
 class LlcSnap
@@ -107,8 +110,6 @@ public:
         return llcSnapIp;
     }
 };
-
-size_t CalcLayer3DataSize(const MacHeader& h802dot11);
 
 CxxEndNameSpace
 #endif

@@ -8,44 +8,57 @@
 using namespace std;
 CxxBeginNameSpace(Router)
 
-/**********************class WepHeader**********************/
-size_t WepHeader::GetIvSize() const
+/**********************class MacPdu**********************/
+size_t MacPdu::GetLayer3DataSize(const MacHeader& macHeader) const
+{
+    assert(macHeader.GetTypeBits() == DataFrameType);
+    size_t size = macHeader.GetFrameBodySize();
+    if (macHeader.GetWepBit() == 1)
+    {
+        size = size - GetHeaderSize() - GetTailerSize();
+    }
+
+    return size;
+}
+
+/**********************class WepMacPdu**********************/
+size_t WepMacPdu::GetIvSize() const
 {
     return WepIvSize;
 }
 
-size_t WepHeader::GetHeaderSize() const
+size_t WepMacPdu::GetHeaderSize() const
 {
     return WepIvSize + WepKeyIndexSize;
 }
 
-size_t WepHeader::GetTailerSize() const
+size_t WepMacPdu::GetTailerSize() const
 {
     return TkipTailerSize;
 }
 
-CryptMode WepHeader::GetCryptMode() const
+CryptMode WepMacPdu::GetCryptMode() const
 {
     return CryptMode::Wep;
 }
 
-/**********************class TkipHeader**********************/
-size_t TkipHeader::GetIvSize() const
+/**********************class TkipMacPdu**********************/
+size_t TkipMacPdu::GetIvSize() const
 {
     return TkipIvSize;
 }
 
-size_t TkipHeader::GetHeaderSize() const
+size_t TkipMacPdu::GetHeaderSize() const
 {
     return TkipHeaderSize;
 }
 
-size_t TkipHeader::GetTailerSize() const
+size_t TkipMacPdu::GetTailerSize() const
 {
     return TkipTailerSize;
 }
 
-CryptMode TkipHeader::GetCryptMode() const
+CryptMode TkipMacPdu::GetCryptMode() const
 {
     return CryptMode::Tkip;
 }
@@ -56,18 +69,19 @@ CryptMode TkipHeader::GetCryptMode() const
 The frame body consists of the MSDU, or a fragment thereof, and a security header and trailer (if and only if
 the Protected Frame subfield in the Frame Control field is set to 1). 
 */
-SecurityHeader* CreateSecurityHeader(const MacHeader& macHeader)
+MacPdu* CreateMacPduHeader(const MacHeader& macHeader)
 {
     assert(macHeader.GetWepBit() == 1);
+#define KeyIndexOffset 3
 
     uchar_t* ptr = macHeader.GetFrameBodyPtr();
     if (((ptr[KeyIndexOffset] >> 5) & 0x1) == 0)
     {
-        return new WepHeader;
+        return new WepMacPdu;
     }
     else
     {
-        return new TkipHeader;
+        return new TkipMacPdu;
     }
 }
 
@@ -77,7 +91,7 @@ size_t CalcLayer3DataSize(const MacHeader& macHeader)
     size_t size = macHeader.GetFrameBodySize();
     if (macHeader.GetWepBit() == 1)
     {
-        shared_ptr<SecurityHeader> mpdu(CreateSecurityHeader(macHeader)); 
+        shared_ptr<MacPdu> mpdu(CreateMacPduHeader(macHeader)); 
         size = size - mpdu->GetHeaderSize() - mpdu->GetTailerSize();
     }
     return size;

@@ -87,6 +87,7 @@
     <ClCompile Include="..\Codes\Src\Functions\PtwLib.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\SecurityHeader.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Rc4.cpp" />
+    <ClCompile Include="..\Codes\Src\Functions\StateMachine.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Station.cpp" />
     <ClCompile Include="..\Codes\Src\Functions\Task.cpp" />
     <ClCompile Include="..\Codes\Src\Public\Common.cpp" />
@@ -101,6 +102,7 @@
     <ClInclude Include="..\Codes\Include\Functions\MacHeader.h" />
     <ClInclude Include="..\Codes\Include\Functions\PktDbWrapper.h" />
     <ClInclude Include="..\Codes\Include\Functions\PtwLib.h" />
+    <ClInclude Include="..\Codes\Include\Functions\StateMachine.h" />
     <ClInclude Include="..\Codes\Include\Functions\Task.h" />
     <ClInclude Include="..\Codes\Include\Functions\Types.h" />
     <ClInclude Include="..\Codes\Include\Functions\SecurityHeader.h" />

@@ -55,7 +55,9 @@ void Cracker::Receive(shared_ptr<uchar_t> buf, size_t bufSize)
     Tasks::Iterator iter = tasks.Find(macHeader->GetBssid());
     if (iter == tasks.end())
     {
-        shared_ptr<Task> task(new Task(macHeader->GetBssid(), GetMyMac(), bind(&Cracker::StateHandler, this, _1)));
+        auto handler =  bind(&Cracker::StateHandler, this, _1);
+        shared_ptr<Task> task(new Task(macHeader->GetBssid(), GetMyMac(), handler));
+        task->Init();
         pair<Tasks::Iterator, bool> ret = tasks.Insert(task);
         if (!ret.second)
         {

@@ -3,52 +3,37 @@
 
 CxxBeginNameSpace(Router)
 
-enum class TaskStates
-{
-    Init, /* init state */
-    WepCapturing, 
-    TkipCapturing, 
-    TkipWaitting,  /* only tkip */
-    TkipRunning,   /* only tkip */
-    Successed, 
-    Failed
-};
-
 class MacHeader;
 class TaskState;
 /**********************class Task**********************/
-class Task
+class Task: public std::enable_shared_from_this<Task>
 {
 public:
-    typedef std::function<void(Task& task)> NotifyFunc;
-    Task(const Mac& theBssid, const Mac& theOwner, const NotifyFunc& theStateNotify);
+    typedef std::function<void(Task& task)> StateHandler;
+    Task(const Mac& theBssid, const Mac& theOwner, const StateHandler& theStateHandler);
+    //beause shared_from_this() can't be called in constructor, we have to 
+    //init TaskState in Init().
+    void Init(); 
 
     const Mac& GetBssid() const;
-    TaskStates GetState() const;
+    TaskStateEnum GetState() const;
     uint_t GetPriority() const;
 
     void Run();
     void Pause();
     void Receive(const MacHeader& macHeader);
+    void ChangeState(TaskState* newState);
 
     /* the following function is provided just for debug */
     void Put(std::ostream& os) const;
 
-    friend class TaskState;
-    friend class TaskInit;
-    friend class TaskCapturing;
-    friend class TaskWepCapturing;
-    friend class TaskTkipCapturing;
-
 private:
-    void ChangeState(TaskState* theState);
-    Mac  bssid;
+    Mac  bssid;    
+    Mac  owner; /* if owner == myMac, this is a local task */      
+    /* when success, notify the parent. */
+    StateHandler stateHandler;
+    std::shared_ptr<TaskState> state;
     std::string essid;
-    Mac  owner; /* if owner == myMac, this is a local task */    
-    TaskState *state;
-    /* when success, notify the craker parent. */
-    NotifyFunc stateNotify;
-    std::shared_ptr<PtwState> ptwState;
 };
 
 inline std::ostream& operator << (std::ostream& os, const Task& task)
@@ -91,82 +76,6 @@ inline std::ostream& operator << (std::ostream& os, const Tasks& tasks)
     tasks.Put(os);
     return os;
 }
-
-/**********************class TaskState**********************/
-class TaskState
-{
-public:
-    virtual TaskStates GetState(const Task *task) const = 0;
-    virtual void Run(Task *task) { assert(false); }
-    virtual void Pause(Task *task) {  assert(false); }
-
-    void Receive(Task *task, const MacHeader& macHeader);
-    virtual void DoReceive(Task *task, const MacHeader& macHeader) = 0;
-};
-
-/**********************class TaskInit**********************/
-class TaskInit: public TaskState
-{
-public:
-    TaskStates GetState(const Task *task) const;
-    void DoReceive(Task *task, const MacHeader& macHeader);
-
-    static TaskInit& GetInstance()
-    {
-        static TaskInit instance;
-        return instance;
-    }
-};
-
-/**********************class TaskCapturing**********************/
-class TaskCapturing: public TaskState
-{
-public:
-    TaskStates GetState(const Task *task) const;
-    void DoReceive(Task *task, const MacHeader& macHeader);
-
-    static TaskCapturing& GetInstance()
-    {
-        static TaskCapturing instance;
-        return instance;
-    }
-};
-
-/**********************class TaskWepCapturing**********************/
-class TaskWepCapturing: public TaskState
-{
-public:
-    TaskWepCapturing();
-
-    TaskStates GetState(const Task *task) const;
-    void DoReceive(Task *task, const MacHeader& macHeader);
-
-    static TaskWepCapturing& GetInstance()
-    {
-        static TaskWepCapturing instance;
-        return instance;
-    }
-
-private:
-    bool IsArpPacket(const MacHeader& dataFrame) const;
-    size_t CalculateClearStream(uchar_t *buf, size_t bufSize, int *weight, const MacHeader& dataFrame) const;
-    void GuessKeyBytes(uchar_t *iv, size_t ivSize, uchar_t *key, uchar_t *result, size_t resultSize);
-    void Check();
-};
-
-/**********************class TaskTkipCapturing**********************/
-class TaskTkipCapturing: public TaskState
-{
-public:
-    TaskStates GetState(const Task *task) const;
-    void DoReceive(Task *task, const MacHeader& macHeader);
-
-    static TaskTkipCapturing& GetInstance()
-    {
-        static TaskTkipCapturing instance;
-        return instance;
-    }
-};
 
 CxxEndNameSpace
 #endif

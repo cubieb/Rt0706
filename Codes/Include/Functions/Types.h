@@ -9,6 +9,17 @@ enum class CryptMode
     Tkip = 2
 };
 
+enum class TaskStateEnum
+{
+    Init, /* init state */
+    WepCapturing, 
+    TkipCapturing, 
+    TkipWaitting,  /* only tkip */
+    TkipRunning,   /* only tkip */
+    Successed, 
+    Failed
+};
+
 /*
  * From boost documentation:
  * The following piece of macro magic joins the two 

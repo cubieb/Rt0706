@@ -27,8 +27,12 @@ using namespace Router;
 
 int main()
 {
+#if 1
     Cracker cracker;
     cracker.ReadPcapFile("../Packets/aircrack-ng-ptw.cap");
+#else
+
+#endif
 
     _CrtMemDumpAllObjectsSince(nullptr);
 	return 0;

@@ -387,7 +387,7 @@ private:
     size_t GetMacHeaderSize() const;
 };
 
-/**********************class CreateMacHeader**********************/
+/**********************class MacHeaderFactor**********************/
 typedef std::function<MacHeader*(const std::shared_ptr<uchar_t>& buf, size_t bufSize)> MacHeaderCreator;
 
 class MacHeaderFactor

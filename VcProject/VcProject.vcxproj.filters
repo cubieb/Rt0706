@@ -78,6 +78,9 @@
     <ClCompile Include="..\Codes\Src\Functions\Task.cpp">
       <Filter>源文件\Functions</Filter>
     </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\StateMachine.cpp">
+      <Filter>源文件\Functions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Codes\Main.h">
@@ -129,6 +132,9 @@
       <Filter>头文件\FrameFormat</Filter>
     </ClInclude>
     <ClInclude Include="..\Codes\Include\Functions\Task.h">
+      <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\StateMachine.h">
       <Filter>头文件\Functions</Filter>
     </ClInclude>
   </ItemGroup>
