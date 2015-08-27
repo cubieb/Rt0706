@@ -106,7 +106,7 @@ public:
     }
     static const uchar_t* GetLlcSnapIp()
     {
-        static const uchar_t* llcSnapIp = (uchar_t*)"\xaa\xaa\x03\x00\x00\x00\x08\x00";
+        static const uchar_t* llcSnapIp  = (uchar_t*)"\xaa\xaa\x03\x00\x00\x00\x08\x00";
         return llcSnapIp;
     }
 };

@@ -31,7 +31,8 @@ int main()
     Cracker cracker;
     cracker.ReadPcapFile("../Packets/aircrack-ng-ptw.cap");
 #else
-
+    string str(3, '\0');
+    char a = str[3];
 #endif
 
     _CrtMemDumpAllObjectsSince(nullptr);

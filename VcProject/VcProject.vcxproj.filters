@@ -34,6 +34,12 @@
     <Filter Include="源文件\FrameFormat">
       <UniqueIdentifier>{9426de2c-69e7-470c-8a33-a5fe8f316890}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\StateMachineLib">
+      <UniqueIdentifier>{0c2e3e89-2762-44e2-a120-2ecc48361b38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\StateMachineLib">
+      <UniqueIdentifier>{ea5f6e22-3cb6-4186-b3c4-2a305c400da0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Codes\Main.cpp">
@@ -78,8 +84,11 @@
     <ClCompile Include="..\Codes\Src\Functions\Task.cpp">
       <Filter>源文件\Functions</Filter>
     </ClCompile>
-    <ClCompile Include="..\Codes\Src\Functions\StateMachine.cpp">
+    <ClCompile Include="..\Codes\Src\Functions\TaskSm.cpp">
       <Filter>源文件\Functions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Codes\Src\Functions\StateMachine.cpp">
+      <Filter>源文件\StateMachineLib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -134,8 +143,17 @@
     <ClInclude Include="..\Codes\Include\Functions\Task.h">
       <Filter>头文件\Functions</Filter>
     </ClInclude>
-    <ClInclude Include="..\Codes\Include\Functions\StateMachine.h">
+    <ClInclude Include="..\Codes\Include\Functions\TaskSm.h">
       <Filter>头文件\Functions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\State.h">
+      <Filter>头文件\StateMachineLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\StateMachine.h">
+      <Filter>头文件\StateMachineLib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Codes\Include\Functions\Interface.h">
+      <Filter>头文件\StateMachineLib</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

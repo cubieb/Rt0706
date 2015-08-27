@@ -6,7 +6,7 @@
 #include "SecurityHeader.h"
 #include "PtwLib.h"
 #include "Rc4.h"
-#include "StateMachine.h"
+#include "TaskSm.h"
 #include "Task.h"
 
 using namespace std;
@@ -50,6 +50,13 @@ void Task::Pause()
 
 void Task::Receive(const MacHeader& macHeader)
 {
+
+    if (macHeader.GetTypeBits() == H802dot11Type::ControlFrameType
+        || macHeader.GetBssid().IsBroadcast())
+    {
+        return;
+    }
+
     if (macHeader.GetTypeBits() == H802dot11Type::ManagementFrameType
         && essid.size() == 0)
     {
