@@ -27,8 +27,15 @@ Example 2:
 */
 enum class system_error_t
 {
-    file_not_exists = 1,
-    bad_file_type   = 2,
+    invalid_parameter = 1,
+    no_free_timer_id,
+    reactor_isnot_actived, 
+    time_out,
+    queue_is_full,
+    queue_is_empty,
+	file_not_exists,
+	bad_file_type,
+    unknown_error, 
 };
 
 class system_category_impl : public std::error_category
@@ -39,7 +46,6 @@ public:
     virtual std::error_condition default_error_condition(int ev) const;
 };
 
-const std::error_category& router_category();
 std::error_code make_error_code(system_error_t e);
 std::error_condition make_error_condition(system_error_t e);
 

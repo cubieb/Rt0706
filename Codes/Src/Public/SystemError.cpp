@@ -29,7 +29,7 @@ error_condition system_category_impl::default_error_condition(int ev) const
     return error_condition(ev, *this);
 }
 
-const error_category& router_category()
+const error_category& get_category_instance()
 {
     static system_category_impl instance;
     return instance;
@@ -37,11 +37,11 @@ const error_category& router_category()
 
 error_code make_error_code(system_error_t e)
 {
-    return error_code(static_cast<int>(e), router_category());
+    return error_code(static_cast<int>(e), get_category_instance());
 }
 
 error_condition make_error_condition(system_error_t e)
 {
-    return error_condition(static_cast<int>(e), router_category());
+    return error_condition(static_cast<int>(e), get_category_instance());
 }
 
