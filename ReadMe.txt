@@ -12,4 +12,4 @@ Git Repository: https://github.com/cd01220/Rt0706.git
 
 2 tag history.
 tag1:  (svn version: 166) 
-    1 为了使用ACE提供的软件框架和设计模式, 特将之前的版本打一个tag保存起来.
+    1 为了使用ACE提供的软件框架和设计模式, 特将之前的版本打一个tag保存起来...
