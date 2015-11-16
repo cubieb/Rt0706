@@ -16,7 +16,7 @@ public:
     Interface() {}
     virtual ~Interface() {}
 
-    virtual TaskState GetState() const = 0;
+    //virtual TaskState GetState() const = 0;
     virtual void Run() { assert(false); }
     virtual void Pause() { assert(false); }
     virtual Interface* Receive(const MacHeader& macHeader) = 0;
