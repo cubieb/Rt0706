@@ -18,10 +18,6 @@
 
 #include "Main.h"
 
-#ifdef _DEBUG
-#define new DEBUG_CLIENTBLOCK
-#endif
-
 using namespace std;
 using namespace Router;
 
@@ -35,6 +31,5 @@ int main()
     char a = str[3];
 #endif
 
-    _CrtMemDumpAllObjectsSince(nullptr);
 	return 0;
 }
